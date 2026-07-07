@@ -1,40 +1,38 @@
 # Current State - DeepCore Registry MVP
 
-## Completed Work
+## Phase 1 Completion
 
-### Phase 1.5 — Memory Reliability
+DeepCore Memory Foundation completed.
 
-1. **Fingerprint & Move Detection**:
-   - Added `content_hash` TEXT field to the `registry_objects` table to index content hashes.
-   - Added content hashing to `MarkdownProvider` using SHA256.
-   - Implemented state-aware duplicate priority:
-     1. Same path/external ID match: restores status and updates hash if modified.
-     2. Hash match + missing status: detects renames/moves and updates the path and restores status without creating duplicates.
-     3. Hash match + active status: treats as a separate copy (registers new object).
+### Capabilities
 
-2. **Sync History Runs Tracking**:
-   - Added the `sync_runs` table logging provider name, start/end timestamps, scan stats (scanned, created, existing, updated, missing), and execution statuses (success/failed with error lists JSON).
-   - Added `deepcore sync history` CLI command to review runs history.
+- **Registry Object Model**: Relational representation of documents, projects, videos, notes, repositories, transactions, merchants, and ideas.
+- **Multi-Provider Ingestion**: Structured base classes for deterministic third-party ingestion.
+- **Intentional Capture Flow**: Unified ingestion gateway (`CaptureService`) with automated regex provider routing and metadata stamping.
+- **Batch Sync Flow**: Local-first recursive directories processing to sync knowledge vaults.
+- **CLI Interface**: Typer commands (`capture`, `list`, `stats`, `sync markdown`, `sync history`) for terminal usage.
+- **Object Fingerprinting**: SHA256 checksums mapping to objects to isolate file content identification.
+- **Sync History**: Database run logging (`sync_runs` table) tracking historical counts and statuses.
+- **Missing Object Lifecycle**: Scoped note deletion tracking to flag deleted files as `missing` rather than destroying memory records.
+- **Migration Safety**: Programmatic, self-healing database upgrades with compatibility for SQLAlchemy 2.x execution patterns.
 
-3. **Deleted/Missing Notes Awareness**:
-   - Added new object status: `missing`.
-   - Markdown folder sync now scopes missing detection by `source_system` + `root_path` (extracted from `metadata_json` using SQLite's native `json_extract`). Active files that disappear from their local directory are marked `missing` instead of deleted, preserving personal memory history.
-   - Restoring a file automatically resets its status back to `active`.
+### Validation
 
-4. **Self-Healing Table Migrations**:
-   - Implemented a programmatic, self-healing migration runner (`run_migrations`) that executes table generation and `ALTER TABLE` schema updates (adding `content_hash` and `objects_missing` columns) dynamically on startup.
+Real user data synced:
+- YouTube objects
+- Markdown knowledge folder
 
-5. **Automated Tests**:
-   - Added [test_sync_reliability.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_sync_reliability.py) verifying moved files updates, duplicate prevention, scoped folder missing notes, sync history recording, and CLI sync history logs.
-   - All 25 test cases passing successfully.
+### Architecture Principles
+
+- **Memory Preservation**: Existing DeepCore memory must survive application upgrades.
+- **Migration Testing**: Database schema changes require accompanying migration tests to ensure safe schema transitions.
 
 ---
 
 ## Active Capabilities
 
-- **State-aware Syncing**: Automatically handles renames, copies, and updates.
-- **Personal Knowledge Archiving**: Retains metadata and structural logs even when files are moved or deleted.
-- **Sync history audit logs**: Searchable record of sync history.
+- **State-aware Syncing**: Automatically handles renames, copies, updates, and restores using content hashes.
+- **Personal Knowledge Archiving**: Retains note metadata, relative/absolute directories, and size/creation info.
 - **Registry stats calculations**: Breakdown of total objects by type and source system.
 
 ---
