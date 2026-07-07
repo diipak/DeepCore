@@ -61,6 +61,9 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 
 - Migration safety tests in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) confirming existing databases upgrade safely without registry data loss.
 - Comprehensive test suite in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) covering indexing, deduplication, modified file re-indexing, missing file resilience, and search query precision.
+- Real user data validated:
+  - Indexed 38 objects, successfully creating 37 content indexes and skipping 1 unmodified note.
+  - Verified case-insensitive content search matches on terms like "ollama" from actual synced markdown notes and YouTube transcripts.
 
 ---
 
