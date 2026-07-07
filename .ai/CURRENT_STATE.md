@@ -29,16 +29,20 @@ Real user data synced:
 
 ---
 
-## Phase 2 — Recall Layer v0.1 (In Progress)
+## Phase 2 Completion
 
-Phase 2 Recall Layer started. DeepCore can now retrieve stored memories.
+DeepCore Recall Layer v0.1 completed.
 
 ### Capabilities
 
 - **Registry Search**: Case-insensitive database query searching across titles, descriptions, and locations.
 - **Object Detail Retrieval**: Retrieval of full metadata using database integer ID or UUID.
-- **Recent Memories**: Fetching of newest active memory objects sorted by created_at.
+- **Recent Memories**: Fetching of newest active memory objects sorted by `created_at` descending.
 - **Recall CLI Interface**: Typer commands (`find`, `show`, `recent`) for CLI-based deterministic memory retrieval.
+
+### Validation
+
+- Unit and CLI integration tests in [test_recall.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_recall.py) and [test_cli.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_cli.py).
 
 ---
 
@@ -47,6 +51,7 @@ Phase 2 Recall Layer started. DeepCore can now retrieve stored memories.
 - **State-aware Syncing**: Automatically handles renames, copies, updates, and restores using content hashes.
 - **Personal Knowledge Archiving**: Retains note metadata, relative/absolute directories, and size/creation info.
 - **Registry stats calculations**: Breakdown of total objects by type and source system.
+- **Deterministic Memory Retrieval**: Retrieve active memories by case-insensitive search queries, display detailed object properties by database ID or UUID, and list recent active memories.
 
 ---
 
