@@ -1,7 +1,8 @@
 from typing import List, Optional, Union
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from deepcore.storage.sqlite.models import RegistryObject as DBRegistryObject
-from deepcore.core.objects.schemas import RegistryObjectCreate, RegistryObjectUpdate
+from deepcore.storage.sqlite.models import RegistryObject as DBRegistryObject, SyncRun as DBSyncRun
+from deepcore.core.objects.schemas import RegistryObjectCreate, RegistryObjectUpdate, SyncRunCreate
 
 class RegistryService:
     def __init__(self, db: Session):
@@ -66,8 +67,6 @@ class RegistryService:
 
     def get_statistics(self) -> dict:
         """Calculate and return registry statistics."""
-        from sqlalchemy import func
-        
         total = self.db.query(DBRegistryObject).count()
         
         by_type_query = self.db.query(
@@ -87,3 +86,37 @@ class RegistryService:
             "by_type": by_type,
             "by_source": by_source
         }
+
+    def find_by_hash(self, content_hash: str) -> Optional[DBRegistryObject]:
+        """Find a registry object by its content hash."""
+        if not content_hash:
+            return None
+        return self.db.query(DBRegistryObject).filter(DBRegistryObject.content_hash == content_hash).first()
+
+    def record_sync_run(self, sync_run_data: SyncRunCreate) -> DBSyncRun:
+        """Record a sync run record in the database."""
+        db_run = DBSyncRun(**sync_run_data.model_dump())
+        self.db.add(db_run)
+        self.db.commit()
+        self.db.refresh(db_run)
+        return db_run
+
+    def list_sync_runs(self) -> List[DBSyncRun]:
+        """List all sync runs, ordered by started_at descending."""
+        return self.db.query(DBSyncRun).order_by(DBSyncRun.started_at.desc()).all()
+
+    def mark_missing_objects(self, source_system: str, root_path: str, active_external_ids: List[str]) -> int:
+        """Mark active objects of source_system in root_path not in active_external_ids as missing."""
+        # Find active objects in this source system and root path that are not in active_external_ids
+        query = self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.source_system == source_system,
+            DBRegistryObject.status == "active",
+            func.json_extract(DBRegistryObject.metadata_json, '$.root_path') == root_path,
+            ~DBRegistryObject.external_id.in_(active_external_ids)
+        )
+        missing_objects = query.all()
+        for obj in missing_objects:
+            obj.status = "missing"
+        if missing_objects:
+            self.db.commit()
+        return len(missing_objects)

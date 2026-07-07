@@ -23,17 +23,20 @@ class RegistryObjectBase(BaseModel):
     status: str = "active"
     metadata_json: Optional[str] = None
     provider_version: Optional[str] = None
+    content_hash: Optional[str] = None
 
 class RegistryObjectCreate(RegistryObjectBase):
     pass
 
 class RegistryObjectUpdate(BaseModel):
     title: Optional[str] = None
+    external_id: Optional[str] = None
     location: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = None
     metadata_json: Optional[str] = None
     provider_version: Optional[str] = None
+    content_hash: Optional[str] = None
 
 class RegistryObject(RegistryObjectBase):
     model_config = ConfigDict(from_attributes=True)
@@ -63,3 +66,27 @@ class RegistryRelationship(RegistryRelationshipBase):
 
 class CaptureRequest(BaseModel):
     content: str = Field(..., min_length=1)
+
+
+class SyncRunBase(BaseModel):
+    provider: str
+    source_location: Optional[str] = None
+    status: str
+    objects_scanned: int = 0
+    objects_created: int = 0
+    objects_existing: int = 0
+    objects_updated: int = 0
+    objects_missing: int = 0
+    errors_json: Optional[str] = None
+
+class SyncRunCreate(SyncRunBase):
+    started_at: datetime
+    finished_at: Optional[datetime] = None
+
+class SyncRun(SyncRunBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    uuid: str
+    started_at: datetime
+    finished_at: Optional[datetime] = None

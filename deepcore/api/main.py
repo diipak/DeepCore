@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from deepcore.storage.sqlite.db import engine, Base
+from deepcore.storage.sqlite.db import engine
+from deepcore.storage.sqlite.models import run_migrations
 from deepcore.api.routes import router as objects_router, capture_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure database tables exist on startup (SQLite creates file dynamically if configured)
-    Base.metadata.create_all(bind=engine)
+    # Ensure database tables exist and are migrated on startup
+    run_migrations(engine)
     yield
 
 app = FastAPI(

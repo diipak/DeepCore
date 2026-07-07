@@ -40,10 +40,10 @@ from deepcore.core.objects.schemas import RegistryObject as SchemaRegistryObject
 
 app = typer.Typer(help="DeepCore CLI Interface")
 
-# Automatically initialize SQLite database tables if they do not exist
-from deepcore.storage.sqlite.db import Base, engine
-from deepcore.storage.sqlite import models
-Base.metadata.create_all(bind=engine)
+# Automatically initialize and migrate SQLite database tables if they do not exist
+from deepcore.storage.sqlite.db import engine
+from deepcore.storage.sqlite.models import run_migrations
+run_migrations(engine)
 
 @app.command("capture")
 def capture(content: str):
@@ -164,6 +164,27 @@ def sync_markdown(path: str):
         typer.echo()
         typer.echo("Existing:")
         typer.echo(provider.existing_count)
+        typer.echo()
+        typer.echo("Missing:")
+        typer.echo(provider.missing_count)
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@sync_app.command("history")
+def sync_history():
+    """Show sync runs history."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        runs = service.list_sync_runs()
+        
+        typer.echo("DATE | PROVIDER | SCANNED | NEW | STATUS")
+        for run in runs:
+            date_str = run.started_at.strftime("%Y-%m-%d")
+            typer.echo(f"{date_str} | {run.provider} | {run.objects_scanned} | {run.objects_created} | {run.status}")
     except Exception as e:
         typer.echo(f"Error: {e}")
         raise typer.Exit(code=1)
