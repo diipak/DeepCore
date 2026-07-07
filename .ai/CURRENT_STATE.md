@@ -3,18 +3,41 @@
 ## Completed Work
 
 ### Phase 1 Connectivity
-1. **Capture Layer v0.1**: Built the universal intake layer for DeepCore in [service.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/deepcore/core/capture/service.py).
+
+1. **Milestone: First complete user memory loop achieved**:
+   - **Validated flow**:
+     ```
+     CLI
+      ↓
+     CaptureService
+      ↓
+     YouTubeProvider
+      ↓
+     RegistryService
+      ↓
+     SQLite
+     ```
+   - **Manual Verification**:
+     - Captured a real YouTube URL: `deepcore capture "https://youtu.be/T33iI6izAKw?si=Kr_HcOxmHS3nQLVV"`
+     - Listed stored objects: `deepcore list` (successfully listed the captured video)
+     - Viewed registry statistics: `deepcore stats` (counted and categorized stored items)
+   - **Known Limitation**: YouTube metadata extraction fallback was triggered (e.g. video page fetch did not yield parsed fields, using default title fallback).
+   - **Future Improvement**: Evaluate a stronger or more resilient metadata provider.
+
+2. **Capture Layer v0.1**: Built the universal intake layer for DeepCore in [service.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/deepcore/core/capture/service.py).
    - **Dynamic Provider Registry**: Decoupled routing logic by registering providers in a registry list (`PROVIDERS = [YouTubeProvider]`) and selecting the matching provider via the `can_handle()` class method, completely avoiding static if/else branching.
    - **Metadata Stamping**: Automatically post-processes objects passing through the Capture Layer to inject capture audit attributes (`captured_via="capture"` and ISO-8601 `captured_at` timestamp) into the `metadata_json` field without coupling providers to the Capture Layer.
    - **Endpoint**: Exposed `POST /capture` routing user payload content to the correct provider and registering (or retrieving duplicates) from the database.
    - **Duplication Integration**: Capturing an existing URL retrieves the existing object and updates the capture audit stamps rather than creating a duplicate.
-2. **YouTubeProvider v0.1**: Built the first external provider in [youtube.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/deepcore/core/providers/youtube.py) inheriting from `BaseProvider`.
+
+3. **YouTubeProvider v0.1**: Built the first external provider in [youtube.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/deepcore/core/providers/youtube.py) inheriting from `BaseProvider`.
    - **URL Parser**: Parsed 11-character video IDs from standard watch URLs, short URLs, embed URLs, and shorts URLs.
-   - **Isolated Metadata Scraper**: Added an isolated `extract_metadata` helper to match metadata (title, channel, thumbnail) from scraped page HTML.
+   - **Isolated Metadata Scraper**: Added an isolated `extract_metadata` helper to match metadata (title, channel, thumbnail) from scraped page HTML. Supports both single and double quotes.
    - **Offline Fallback**: Handles network exceptions gracefully, falling back to a default title format: `"YouTube Video {video_id}"`.
    - **Audit Metadata**: Stamped a UTC ISO-8601 `captured_at` timestamp inside the object's `metadata_json`.
    - **Duplicate Handling**: Queries the database to prevent duplicate objects for matching `source_system="youtube"` and `external_id=video_id`.
-3. **Automated Tests**:
+
+4. **Automated Tests**:
    - Added comprehensive integration tests in [test_capture.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_capture.py) verifying dynamic routing, capture metadata injection, HTTP API status codes, and duplicate handling.
    - Added unit tests in [test_youtube_provider.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_youtube_provider.py) verifying URL parsing, offline fallbacks, and duplicate checks.
 
