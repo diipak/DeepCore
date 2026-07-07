@@ -42,3 +42,19 @@ def get_object(id_or_uuid: str, db: Session = Depends(get_db)):
     if not obj:
         raise HTTPException(status_code=404, detail=f"Object '{id_or_uuid}' not found")
     return obj
+
+
+capture_router = APIRouter(tags=["capture"])
+
+@capture_router.post("/capture", response_model=schemas.RegistryObject, status_code=201)
+def capture_content(request: schemas.CaptureRequest, db: Session = Depends(get_db)):
+    """Universal intake endpoint for capturing new assets."""
+    from deepcore.core.capture.service import CaptureService, UnsupportedInputError
+    service = CaptureService(db)
+    try:
+        return service.capture(request.content)
+    except UnsupportedInputError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

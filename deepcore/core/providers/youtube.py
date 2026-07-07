@@ -41,24 +41,24 @@ def extract_metadata(url: str, html: str) -> dict:
     }
     
     # Title extraction
-    t_match1 = re.search(r'<meta\s+property="og:title"\s+content="([^"]+)"', html)
-    t_match2 = re.search(r'<meta\s+content="([^"]+)"\s+property="og:title"', html)
+    t_match1 = re.search(r'<meta\s+property=["\']og:title["\']\s+content=["\']([^"\']+)["\']', html)
+    t_match2 = re.search(r'<meta\s+content=["\']([^"\']+)["\']\s+property=["\']og:title["\']', html)
     if t_match1:
         metadata["title"] = t_match1.group(1)
     elif t_match2:
         metadata["title"] = t_match2.group(1)
         
     # Thumbnail extraction
-    img_match1 = re.search(r'<meta\s+property="og:image"\s+content="([^"]+)"', html)
-    img_match2 = re.search(r'<meta\s+content="([^"]+)"\s+property="og:image"', html)
+    img_match1 = re.search(r'<meta\s+property=["\']og:image["\']\s+content=["\']([^"\']+)["\']', html)
+    img_match2 = re.search(r'<meta\s+content=["\']([^"\']+)["\']\s+property=["\']og:image["\']', html)
     if img_match1:
         metadata["thumbnail"] = img_match1.group(1)
     elif img_match2:
         metadata["thumbnail"] = img_match2.group(1)
         
     # Channel name extraction
-    ch_match1 = re.search(r'<link\s+itemprop="name"\s+content="([^"]+)"', html)
-    ch_match2 = re.search(r'<link\s+content="([^"]+)"\s+itemprop="name"', html)
+    ch_match1 = re.search(r'<link\s+itemprop=["\']name["\']\s+content=["\']([^"\']+)["\']', html)
+    ch_match2 = re.search(r'<link\s+content=["\']([^"\']+)["\']\s+itemprop=["\']name["\']', html)
     if ch_match1:
         metadata["channel"] = ch_match1.group(1)
     elif ch_match2:
@@ -68,6 +68,13 @@ def extract_metadata(url: str, html: str) -> dict:
 
 
 class YouTubeProvider(BaseProvider):
+    @classmethod
+    def can_handle(cls, content: Any) -> bool:
+        """Return True if the content is a valid YouTube URL."""
+        if isinstance(content, str):
+            return extract_video_id(content) is not None
+        return False
+
     def __init__(self, urls: Optional[List[str]] = None):
         """Initialize provider with an optional list of raw YouTube URLs."""
         self.urls = urls or []

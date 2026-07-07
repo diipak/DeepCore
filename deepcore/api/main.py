@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from deepcore.storage.sqlite.db import engine, Base
-from deepcore.api.routes import router as objects_router
+from deepcore.api.routes import router as objects_router, capture_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,6 +18,7 @@ app = FastAPI(
 
 # Register routes
 app.include_router(objects_router)
+app.include_router(capture_router)
 
 @app.get("/")
 def read_root():

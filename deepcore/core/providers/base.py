@@ -3,6 +3,10 @@ from typing import List, Any
 from deepcore.core.registry.service import RegistryService
 
 class BaseProvider(ABC):
+    @classmethod
+    def can_handle(cls, content: Any) -> bool:
+        """Return True if this provider can handle/route the given input content."""
+        return False
     @abstractmethod
     def discover(self, *args, **kwargs) -> List[Any]:
         """Find or gather raw objects to ingest from the source system."""

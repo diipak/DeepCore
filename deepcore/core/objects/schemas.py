@@ -59,3 +59,7 @@ class RegistryRelationship(RegistryRelationshipBase):
     from_object_id: int
     to_object_id: int
     created_at: datetime
+
+
+class CaptureRequest(BaseModel):
+    content: str = Field(..., min_length=1)
