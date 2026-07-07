@@ -63,19 +63,19 @@ def run_migrations(engine) -> None:
     Base.metadata.create_all(bind=engine)
 
     # 2. Check and alter registry_objects table for missing columns
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect, text
     inspector = inspect(engine)
     
     # Check registry_objects columns
     obj_columns = [col["name"] for col in inspector.get_columns("registry_objects")]
     if "content_hash" not in obj_columns:
         with engine.begin() as conn:
-            conn.execute("ALTER TABLE registry_objects ADD COLUMN content_hash TEXT;")
-            conn.execute("CREATE INDEX ix_registry_objects_content_hash ON registry_objects (content_hash);")
+            conn.execute(text("ALTER TABLE registry_objects ADD COLUMN content_hash TEXT;"))
+            conn.execute(text("CREATE INDEX ix_registry_objects_content_hash ON registry_objects (content_hash);"))
 
     # Check sync_runs columns (handles incremental migration if table existed before update)
     if "sync_runs" in inspector.get_table_names():
         run_columns = [col["name"] for col in inspector.get_columns("sync_runs")]
         if "objects_missing" not in run_columns:
             with engine.begin() as conn:
-                conn.execute("ALTER TABLE sync_runs ADD COLUMN objects_missing INTEGER DEFAULT 0;")
+                conn.execute(text("ALTER TABLE sync_runs ADD COLUMN objects_missing INTEGER DEFAULT 0;"))

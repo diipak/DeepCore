@@ -167,3 +167,54 @@ def test_cli_sync_history_command(tmp_path, cli_runner):
     assert "DATE | PROVIDER | SCANNED | NEW | STATUS" in result.stdout
     assert "markdown" in result.stdout
     assert "success" in result.stdout
+
+
+def test_run_migrations_upgrades_schema(tmp_path):
+    """Verify that run_migrations successfully upgrades an old schema missing content_hash."""
+    from sqlalchemy import create_engine, Table, MetaData, Column, Integer, String, DateTime, text
+    from deepcore.storage.sqlite.models import run_migrations, get_utc_now
+    
+    # 1. Create a database file with an old schema lacking content_hash
+    db_file = tmp_path / "old_deepcore.db"
+    db_url = f"sqlite:///{db_file}"
+    old_engine = create_engine(db_url)
+    
+    metadata = MetaData()
+    # Define registry_objects table WITHOUT content_hash column
+    old_table = Table(
+        "registry_objects",
+        metadata,
+        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("uuid", String, nullable=False),
+        Column("object_type", String, nullable=False),
+        Column("title", String, nullable=False),
+        Column("source_system", String, nullable=False),
+        Column("external_id", String, nullable=True),
+        Column("location", String, nullable=True),
+        Column("description", String, nullable=True),
+        Column("status", String, nullable=False, default="active"),
+        Column("metadata_json", String, nullable=True),
+        Column("provider_version", String, nullable=True),
+        Column("created_at", DateTime, default=get_utc_now, nullable=False),
+        Column("updated_at", DateTime, default=get_utc_now, nullable=False)
+    )
+    metadata.create_all(bind=old_engine)
+    
+    # Verify that content_hash does not exist yet
+    from sqlalchemy import inspect
+    inspector = inspect(old_engine)
+    columns = [col["name"] for col in inspector.get_columns("registry_objects")]
+    assert "content_hash" not in columns
+    
+    # 2. Run run_migrations() on the old database
+    run_migrations(old_engine)
+    
+    # 3. Verify that content_hash exists now
+    inspector = inspect(old_engine)
+    columns_after = [col["name"] for col in inspector.get_columns("registry_objects")]
+    assert "content_hash" in columns_after
+    
+    # Verify we can execute a query containing content_hash
+    with old_engine.connect() as conn:
+        res = conn.execute(text("SELECT content_hash FROM registry_objects"))
+        assert res is not None
