@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
 from deepcore.storage.sqlite.db import Base
 
 def generate_uuid() -> str:
@@ -55,6 +55,20 @@ class SyncRun(Base):
     objects_updated = Column(Integer, default=0, nullable=False)
     objects_missing = Column(Integer, default=0, nullable=False)
     errors_json = Column(String, nullable=True)
+
+
+class ContentIndex(Base):
+    __tablename__ = "content_index"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String, unique=True, index=True, default=generate_uuid, nullable=False)
+    object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False)
+    content_type = Column(String, nullable=False)
+    raw_text = Column(Text, nullable=False)
+    content_hash = Column(String, nullable=False, index=True)
+    word_count = Column(Integer, default=0, nullable=False)
+    indexed_at = Column(DateTime, default=get_utc_now, nullable=False)
+    index_version = Column(String, default="content_v0.1", nullable=False)
 
 
 def run_migrations(engine) -> None:

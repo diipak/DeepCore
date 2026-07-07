@@ -90,3 +90,25 @@ class SyncRun(SyncRunBase):
     uuid: str
     started_at: datetime
     finished_at: Optional[datetime] = None
+
+
+class ContentIndexBase(BaseModel):
+    object_id: int
+    content_type: str
+    raw_text: str
+    content_hash: str
+    word_count: int
+    index_version: str = "content_v0.1"
+
+
+class ContentIndexCreate(ContentIndexBase):
+    pass
+
+
+class ContentIndex(ContentIndexBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    uuid: str
+    indexed_at: datetime
+

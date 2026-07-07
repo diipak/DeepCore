@@ -250,6 +250,95 @@ def recent():
     finally:
         db.close()
 
+def extract_snippet(text: str, query: str, context_len: int = 30) -> str:
+    """Extract a snippet of text around the first match of query."""
+    idx = text.lower().find(query.lower())
+    if idx == -1:
+        snippet = text[:context_len * 2]
+        if len(text) > context_len * 2:
+            snippet += "..."
+        return snippet.replace("\n", " ").replace("\r", " ")
+    
+    start = max(0, idx - context_len)
+    end = min(len(text), idx + len(query) + context_len)
+    snippet = text[start:end]
+    snippet = snippet.replace("\n", " ").replace("\r", " ")
+    
+    if start > 0:
+        snippet = "..." + snippet
+    if end < len(text):
+        snippet = snippet + "..."
+    return snippet
+
+@app.command("index")
+def index_command():
+    """Index all active objects with supported content."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.content.service import ContentService
+        service = ContentService(db)
+        stats = service.index_all_active_objects()
+        typer.echo("DeepCore Content Index")
+        typer.echo()
+        typer.echo("Objects scanned:")
+        typer.echo(stats["scanned"])
+        typer.echo()
+        typer.echo("Indexed:")
+        typer.echo(stats["indexed"])
+        typer.echo()
+        typer.echo("Skipped:")
+        typer.echo(stats["skipped"])
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+content_app = typer.Typer(help="Manage and search content index")
+app.add_typer(content_app, name="content")
+
+@content_app.command("search")
+def content_search(query: str):
+    """Search indexed content raw text."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.content.service import ContentService
+        service = ContentService(db)
+        results = service.search_content(query)
+        typer.echo("ID | TITLE | MATCH")
+        typer.echo("------------------------------------")
+        for obj, idx in results:
+            snippet = extract_snippet(idx.raw_text, query)
+            typer.echo(f"{obj.id} | {obj.title} | {snippet}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@content_app.command("show")
+def content_show(id_or_uuid: str):
+    """Show preview of stored indexed content."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.content.service import ContentService
+        service = ContentService(db)
+        content_obj = service.get_content(id_or_uuid)
+        if not content_obj:
+            typer.echo(f"Error: No indexed content found for object '{id_or_uuid}'")
+            raise typer.Exit(code=1)
+        
+        preview = content_obj.raw_text[:1000]
+        typer.echo(preview)
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     app()
+
 

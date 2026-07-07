@@ -46,12 +46,31 @@ DeepCore Recall Layer v0.1 completed.
 
 ---
 
+## Phase 3 Completion
+
+Phase 3 Content Index started. DeepCore can now inspect contents of memories.
+
+### Capabilities
+
+- **Content Database Model**: A dedicated `content_index` table using the SQLAlchemy `Text` type, linked to registry objects with cascade deletion.
+- **Deduplicated Content Indexing**: `ContentService` reads markdown files, hashes contents to prevent duplicate index runs, and updates existing records on modification.
+- **Deterministic Content Search**: Raw structured text search using SQLite `LIKE` matching.
+- **Content CLI Subcommands**: `deepcore index` for scanning and indexing all active memories, `deepcore content search` with context snippet generation at CLI layer, and `deepcore content show` for previews.
+
+### Validation
+
+- Migration safety tests in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) confirming existing databases upgrade safely without registry data loss.
+- Comprehensive test suite in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) covering indexing, deduplication, modified file re-indexing, missing file resilience, and search query precision.
+
+---
+
 ## Active Capabilities
 
 - **State-aware Syncing**: Automatically handles renames, copies, updates, and restores using content hashes.
 - **Personal Knowledge Archiving**: Retains note metadata, relative/absolute directories, and size/creation info.
 - **Registry stats calculations**: Breakdown of total objects by type and source system.
 - **Deterministic Memory Retrieval**: Retrieve active memories by case-insensitive search queries, display detailed object properties by database ID or UUID, and list recent active memories.
+- **Content Indexing and Search**: Build a derived content index of active markdown files, update indexed content on file modifications, and query raw text content deterministically.
 
 ---
 
