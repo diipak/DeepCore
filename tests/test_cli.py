@@ -133,3 +133,87 @@ def test_cli_sync_markdown(staged_notes_dir, cli_runner):
     assert "Scanned:\n3 files" in result2.stdout
     assert "New:\n0" in result2.stdout
     assert "Existing:\n3" in result2.stdout
+
+
+def test_cli_find(db_session, cli_runner):
+    """Verify deepcore find outputs matching objects with ID, type, title, source in case-insensitive manner."""
+    from deepcore.core.registry.service import RegistryService
+    from deepcore.core.objects.schemas import RegistryObjectCreate
+    
+    service = RegistryService(db_session)
+    obj = service.register_object(RegistryObjectCreate(
+        object_type="note",
+        title="Build RAG System",
+        source_system="markdown",
+        location="/notes/rag.md",
+        status="active"
+    ))
+    
+    # 1. Search with exact case query
+    result = cli_runner.invoke(app, ["find", "RAG"])
+    assert result.exit_code == 0
+    assert "ID | TYPE | TITLE | SOURCE" in result.stdout
+    assert "--------------------------------" in result.stdout
+    assert f"{obj.id} | note | Build RAG System | markdown" in result.stdout
+    
+    # 2. Search with lowercase query (regression test)
+    result_lower = cli_runner.invoke(app, ["find", "rag"])
+    assert result_lower.exit_code == 0
+    assert f"{obj.id} | note | Build RAG System | markdown" in result_lower.stdout
+
+
+def test_cli_show_by_id_and_uuid(db_session, cli_runner):
+    """Verify deepcore show displays correct detailed fields using either integer ID or UUID."""
+    from deepcore.core.registry.service import RegistryService
+    from deepcore.core.objects.schemas import RegistryObjectCreate
+    
+    service = RegistryService(db_session)
+    obj = service.register_object(RegistryObjectCreate(
+        object_type="note",
+        title="Meeting Notes",
+        source_system="manual",
+        location="/notes/meet.txt",
+        status="active",
+        metadata_json='{"importance": "high"}'
+    ))
+    
+    # 1. Show by ID
+    result_id = cli_runner.invoke(app, ["show", str(obj.id)])
+    assert result_id.exit_code == 0
+    assert "Title: Meeting Notes" in result_id.stdout
+    assert "Source: manual" in result_id.stdout
+    assert "Location: /notes/meet.txt" in result_id.stdout
+    assert "Status: active" in result_id.stdout
+    assert 'Metadata: {"importance": "high"}' in result_id.stdout
+    
+    # 2. Show by UUID
+    result_uuid = cli_runner.invoke(app, ["show", obj.uuid])
+    assert result_uuid.exit_code == 0
+    assert "Title: Meeting Notes" in result_uuid.stdout
+    
+    # 3. Show non-existent
+    result_fail = cli_runner.invoke(app, ["show", "999999"])
+    assert result_fail.exit_code == 1
+    assert "Error: Object with identifier '999999' not found" in result_fail.stdout
+
+
+def test_cli_recent(db_session, cli_runner):
+    """Verify deepcore recent prints header, empty line, and recent items."""
+    from deepcore.core.registry.service import RegistryService
+    from deepcore.core.objects.schemas import RegistryObjectCreate
+    
+    service = RegistryService(db_session)
+    obj = service.register_object(RegistryObjectCreate(
+        object_type="note",
+        title="Recent Memory",
+        source_system="manual",
+        status="active"
+    ))
+    
+    result = cli_runner.invoke(app, ["recent"])
+    assert result.exit_code == 0
+    assert "Recent DeepCore Memories\n" in result.stdout
+    assert "DATE | TYPE | TITLE | SOURCE" in result.stdout
+    created_str = obj.created_at.strftime("%Y-%m-%d")
+    assert f"{created_str} | note | Recent Memory | manual" in result.stdout
+

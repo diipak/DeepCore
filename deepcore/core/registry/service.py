@@ -120,3 +120,53 @@ class RegistryService:
         if missing_objects:
             self.db.commit()
         return len(missing_objects)
+
+    def search_objects(
+        self,
+        query: str,
+        object_type: Optional[str] = None,
+        source_system: Optional[str] = None,
+        limit: int = 20
+    ) -> List[DBRegistryObject]:
+        """Search active registry objects using case-insensitive LIKE matching on title, description, or location."""
+        query_str = f"%{query}%"
+        db_query = self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active",
+            (
+                DBRegistryObject.title.ilike(query_str) |
+                DBRegistryObject.description.ilike(query_str) |
+                DBRegistryObject.location.ilike(query_str)
+            )
+        )
+        if object_type:
+            db_query = db_query.filter(DBRegistryObject.object_type == object_type)
+        if source_system:
+            db_query = db_query.filter(DBRegistryObject.source_system == source_system)
+            
+        return db_query.limit(limit).all()
+
+    def get_object_details(self, id_or_uuid: Union[int, str]) -> Optional[dict]:
+        """Retrieve full details of a registry object by ID or UUID."""
+        obj = self.get_object(id_or_uuid)
+        if not obj:
+            return None
+        return {
+            "uuid": obj.uuid,
+            "type": obj.object_type,
+            "title": obj.title,
+            "source": obj.source_system,
+            "location": obj.location,
+            "status": obj.status,
+            "metadata_json": obj.metadata_json,
+            "created_at": obj.created_at,
+            "updated_at": obj.updated_at
+        }
+
+    def recent_objects(self, limit: int = 10) -> List[DBRegistryObject]:
+        """Return newest active objects ordered by created_at descending."""
+        return self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active"
+        ).order_by(
+            DBRegistryObject.created_at.desc()
+        ).limit(limit).all()
+

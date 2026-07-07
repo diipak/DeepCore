@@ -29,6 +29,19 @@ Real user data synced:
 
 ---
 
+## Phase 2 — Recall Layer v0.1 (In Progress)
+
+Phase 2 Recall Layer started. DeepCore can now retrieve stored memories.
+
+### Capabilities
+
+- **Registry Search**: Case-insensitive database query searching across titles, descriptions, and locations.
+- **Object Detail Retrieval**: Retrieval of full metadata using database integer ID or UUID.
+- **Recent Memories**: Fetching of newest active memory objects sorted by created_at.
+- **Recall CLI Interface**: Typer commands (`find`, `show`, `recent`) for CLI-based deterministic memory retrieval.
+
+---
+
 ## Active Capabilities
 
 - **State-aware Syncing**: Automatically handles renames, copies, updates, and restores using content hashes.

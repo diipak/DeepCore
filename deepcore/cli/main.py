@@ -191,5 +191,65 @@ def sync_history():
     finally:
         db.close()
 
+@app.command("find")
+def find(query: str):
+    """Find active registry objects by title, description, or location."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        results = service.search_objects(query)
+        typer.echo("ID | TYPE | TITLE | SOURCE")
+        typer.echo("--------------------------------")
+        for obj in results:
+            typer.echo(f"{obj.id} | {obj.object_type} | {obj.title} | {obj.source_system}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("show")
+def show(id_or_uuid: str):
+    """Show details of a specific registry object by ID or UUID."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        obj_details = service.get_object_details(id_or_uuid)
+        if not obj_details:
+            typer.echo(f"Error: Object with identifier '{id_or_uuid}' not found")
+            raise typer.Exit(code=1)
+        
+        typer.echo(f"Title: {obj_details['title']}")
+        typer.echo(f"Source: {obj_details['source']}")
+        typer.echo(f"Location: {obj_details['location'] or ''}")
+        typer.echo(f"Status: {obj_details['status']}")
+        typer.echo(f"Metadata: {obj_details['metadata_json'] or ''}")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("recent")
+def recent():
+    """Show recent active memory objects."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        recent_objs = service.recent_objects(limit=10)
+        typer.echo("Recent DeepCore Memories\n")
+        typer.echo("DATE | TYPE | TITLE | SOURCE")
+        for obj in recent_objs:
+            date_str = obj.created_at.strftime("%Y-%m-%d")
+            typer.echo(f"{date_str} | {obj.object_type} | {obj.title} | {obj.source_system}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     app()
+
