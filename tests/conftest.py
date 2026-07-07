@@ -52,3 +52,39 @@ def client(db_session):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def staged_notes_dir(tmp_path):
+    """Creates a temporary notes directory structure with staged markdown and ignored files/folders."""
+    root = tmp_path / "Notes"
+    root.mkdir()
+    
+    # 1. Valid root level notes
+    (root / "note1.md").write_text("Hello note 1")
+    (root / "note2.MD").write_text("Case insensitive test")
+    
+    # 2. Valid nested note
+    nested = root / "nested"
+    nested.mkdir()
+    (nested / "note3.md").write_text("Nested markdown note")
+    
+    # 3. Ignored non-markdown file
+    (root / "draft.txt").write_text("This is draft")
+    
+    # 4. Ignored hidden folders and files
+    git_dir = root / ".git"
+    git_dir.mkdir()
+    (git_dir / "ignored_note.md").write_text("Ignored Git")
+    
+    obsidian_dir = root / ".obsidian"
+    obsidian_dir.mkdir()
+    (obsidian_dir / "workspace.json").write_text("{}")
+    
+    trash_dir = root / ".trash"
+    trash_dir.mkdir()
+    (trash_dir / "deleted_note.md").write_text("Ignored trash")
+    
+    (root / ".hidden_file.md").write_text("Ignored dot file")
+    
+    return str(root)

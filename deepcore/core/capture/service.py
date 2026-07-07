@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from deepcore.core.registry.service import RegistryService
 from deepcore.core.providers.youtube import YouTubeProvider
 
+from deepcore.core.objects.schemas import RegistryObjectUpdate
+
 # Supported providers registry
 PROVIDERS = [
     YouTubeProvider
@@ -56,8 +58,6 @@ class CaptureService:
         metadata["captured_via"] = "capture"
         metadata["captured_at"] = datetime.now(timezone.utc).isoformat()
         
-        db_obj.metadata_json = json.dumps(metadata)
-        self.db.commit()
-        self.db.refresh(db_obj)
-        
-        return db_obj
+        # Avoid direct DB write/commit, use RegistryService update_object
+        update_data = RegistryObjectUpdate(metadata_json=json.dumps(metadata))
+        return self.registry_service.update_object(db_obj.id, update_data)

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deepcore"
+version = "0.1.0"
+description = "Privacy-first local personal intelligence platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "sqlalchemy>=2.0.0",
+    "pydantic>=2.0.0",
+    "pytest>=7.0.0",
+    "httpx>=0.24.0",
+    "python-dotenv>=1.0.0",
+    "typer>=0.9.0"
+]
+
+[project.scripts]
+deepcore = "deepcore.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["deepcore*"]

@@ -63,3 +63,27 @@ class RegistryService:
         self.db.commit()
         self.db.refresh(db_obj)
         return db_obj
+
+    def get_statistics(self) -> dict:
+        """Calculate and return registry statistics."""
+        from sqlalchemy import func
+        
+        total = self.db.query(DBRegistryObject).count()
+        
+        by_type_query = self.db.query(
+            DBRegistryObject.object_type, 
+            func.count(DBRegistryObject.id)
+        ).group_by(DBRegistryObject.object_type).all()
+        by_type = {r[0]: r[1] for r in by_type_query}
+        
+        by_source_query = self.db.query(
+            DBRegistryObject.source_system, 
+            func.count(DBRegistryObject.id)
+        ).group_by(DBRegistryObject.source_system).all()
+        by_source = {r[0]: r[1] for r in by_source_query}
+        
+        return {
+            "total_objects": total,
+            "by_type": by_type,
+            "by_source": by_source
+        }
