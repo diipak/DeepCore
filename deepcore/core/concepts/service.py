@@ -252,8 +252,9 @@ class ConceptService:
         if not show_ignored:
             query = query.filter(
                 (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') != "ignored") |
-                (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') == None)
+                (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status').is_(None))
             )
+
 
 
         results = query.group_by(
@@ -318,8 +319,10 @@ class ConceptService:
         concept.metadata_json = json.dumps(metadata)
         self.db.add(concept)
         self.db.commit()
-        self.db.refresh(concept)
+        self.db.expire_all()
+        concept = self.db.query(DBRegistryObject).get(concept.id)
         return concept
+
 
     def approve_concept(self, name: str, concept_type: Optional[str] = None) -> DBRegistryObject:
         """Mark a concept's status as approved and optionally update its type."""
@@ -342,8 +345,10 @@ class ConceptService:
         concept.metadata_json = json.dumps(metadata)
         self.db.add(concept)
         self.db.commit()
-        self.db.refresh(concept)
+        self.db.expire_all()
+        concept = self.db.query(DBRegistryObject).get(concept.id)
         return concept
+
 
     def merge_concepts(self, source_name: str, target_name: str) -> Tuple[DBRegistryObject, DBRegistryObject]:
         """Merge a source concept into a target concept, rerouting relationships cleanly with duplicate/evidence safety."""
@@ -428,6 +433,8 @@ class ConceptService:
                 self.db.add(rel)
                 
         self.db.commit()
-        self.db.refresh(source)
-        self.db.refresh(target)
+        self.db.expire_all()
+        source = self.db.query(DBRegistryObject).get(source.id)
+        target = self.db.query(DBRegistryObject).get(target.id)
         return source, target
+
