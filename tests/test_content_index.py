@@ -114,7 +114,7 @@ def test_markdown_indexing_lifecycle_and_search(tmp_path, db_session):
     assert idx_entry_updated is not None
     assert idx_entry_updated.id == idx_entry.id
     assert idx_entry_updated.raw_text == "Build a RAG system using local files and SQLite LIKE."
-    assert idx_entry_updated.word_count == 9
+    assert idx_entry_updated.word_count == 10
     assert idx_entry_updated.content_hash != idx_entry.content_hash
     
     # 5. Missing source files handled safely
