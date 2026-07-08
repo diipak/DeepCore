@@ -190,3 +190,31 @@ def test_cli_content_commands(tmp_path, db_session, cli_runner_content):
     result_show_uuid = cli_runner_content.invoke(app, ["content", "show", obj.uuid])
     assert result_show_uuid.exit_code == 0
     assert "DeepCore memory layer supports CLI index." in result_show_uuid.stdout
+
+
+def test_stable_database_path_determination(tmp_path, monkeypatch):
+    """Verify that deepcore settings default to expand ~ to ~/.deepcore/deepcore.db and handle local migrations."""
+    # 1. Setup mock environment
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("DEEPCORE_DB_PATH", raising=False)
+    
+    # Create old local database file
+    local_db = tmp_path / "deepcore.db"
+    local_db.write_text("pre-existing sqlite data")
+    
+    # Change current working directory to our mock temp directory
+    monkeypatch.chdir(tmp_path)
+    
+    # 2. Instantiate Settings to trigger path calculation & migration
+    from deepcore.config import Settings
+    s = Settings()
+    
+    # 3. Assertions
+    expected_path = os.path.join(str(tmp_path), ".deepcore", "deepcore.db")
+    assert s.DB_PATH == expected_path
+    
+    # Verify migration copy succeeded
+    assert os.path.exists(expected_path)
+    with open(expected_path, "r") as f:
+        assert f.read() == "pre-existing sqlite data"
+
