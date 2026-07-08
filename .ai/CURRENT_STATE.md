@@ -68,11 +68,11 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 ---
 
 ## Phase 4 Completion
-
-Phase 4 Concept Extraction and Governance started. DeepCore can now build first-class ontology building blocks from memories with a robust governance lifecycle.
-
+ 
+Phase 4 Concept Extraction and Governance completed. DeepCore can now build first-class ontology building blocks from memories with a robust governance lifecycle.
+ 
 ### Capabilities
-
+ 
 - **Ontology Foundation Models**: First-class concept objects of `object_type = "concept"` stored in the registry, and enriched `registry_relationships` holding extraction evidence.
 - **Enriched Relationships Table**: Programmatic migration safely adding `evidence_json` and `relationship_source` to support tracking how relationships were discovered.
 - **Deterministic Concept Extraction**: `ConceptService` extracts candidates via headings, technical term matching (PascalCase, ALLCAPS, numeric), and frequency detection.
@@ -82,9 +82,10 @@ Phase 4 Concept Extraction and Governance started. DeepCore can now build first-
 - **CLI Governance Commands**: `deepcore concepts ignore`, `deepcore concepts approve [--type]`, and `deepcore concepts merge` to manage the ontology dynamically.
 - **Merge and Duplicate Safety**: Automatically reroutes relationships during merges, combines duplicate relationships to avoid duplicate edges, sums occurrences, and records merge origin trails in `evidence_json`.
 - **Self-Healing Metadata Migration**: Automatically updates legacy concepts created before governance to have default candidate status and unknown type on-the-fly when read.
-
+- **Click 8.2+ Option Patching**: Resolves options compatibility bug between Click 8.2+ and Typer 0.12 by forcing `click.BOOL` type mapping on boolean flags to prevent string/None flag parsing issues.
+ 
 ### Validation
-
+ 
 - Self-healing database migration safety tests confirming database upgrades preserve existing tables and contents.
 - Robust test suite in [test_concepts.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concepts.py) verifying heading, technical term, repeated phrase extraction, duplicate resolution, active status limits, and CLI commands.
 - Governance test suite in [test_concept_governance.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concept_governance.py) verifying type whitelist validation, ignore/approve/merge transitions, self-healing metadata migration on read, duplicate relationship merging, and listing filters.
