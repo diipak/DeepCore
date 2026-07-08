@@ -237,25 +237,29 @@ class ConceptService:
 
     def list_concepts(self, limit: int = 50, show_ignored: bool = False) -> List[Tuple[DBRegistryObject, int]]:
         """Return active concepts ordered by connection (relationship) count descending."""
-        query = self.db.query(
-            DBRegistryObject,
-            func.count(DBRegistryRelationship.id).label("connection_count")
-        ).join(
-            DBRegistryRelationship,
-            DBRegistryObject.id == DBRegistryRelationship.to_object_id
-        ).filter(
+        # 1. Start query from concept table
+        query = self.db.query(DBRegistryObject).filter(
             DBRegistryObject.object_type == "concept",
-            DBRegistryObject.status != "merged",
-            DBRegistryRelationship.relationship_type == "mentions"
+            DBRegistryObject.status != "merged"
         )
 
+        # 2. Apply filters on concept object's metadata_json
         if not show_ignored:
             query = query.filter(
                 (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') != "ignored") |
                 (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status').is_(None))
             )
 
-
+        # 3. Join relationships for connection count
+        query = query.join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.relationship_type == "mentions"
+        ).with_entities(
+            DBRegistryObject,
+            func.count(DBRegistryRelationship.id).label("connection_count")
+        )
 
         results = query.group_by(
             DBRegistryObject.id
@@ -320,7 +324,7 @@ class ConceptService:
         self.db.add(concept)
         self.db.commit()
         self.db.expire_all()
-        concept = self.db.query(DBRegistryObject).get(concept.id)
+        concept = self.db.get(DBRegistryObject, concept.id)
         return concept
 
 
@@ -346,7 +350,7 @@ class ConceptService:
         self.db.add(concept)
         self.db.commit()
         self.db.expire_all()
-        concept = self.db.query(DBRegistryObject).get(concept.id)
+        concept = self.db.get(DBRegistryObject, concept.id)
         return concept
 
 
@@ -434,7 +438,7 @@ class ConceptService:
                 
         self.db.commit()
         self.db.expire_all()
-        source = self.db.query(DBRegistryObject).get(source.id)
-        target = self.db.query(DBRegistryObject).get(target.id)
+        source = self.db.get(DBRegistryObject, source.id)
+        target = self.db.get(DBRegistryObject, target.id)
         return source, target
 
