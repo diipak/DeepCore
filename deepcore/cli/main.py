@@ -338,7 +338,80 @@ def content_show(id_or_uuid: str):
     finally:
         db.close()
 
+concepts_app = typer.Typer(help="Manage and inspect extracted concepts")
+app.add_typer(concepts_app, name="concepts")
+
+@concepts_app.command("extract")
+def concepts_extract():
+    """Extract key concepts from all active indexed memories."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        stats = service.extract_all()
+        typer.echo("DeepCore Concept Extraction")
+        typer.echo()
+        typer.echo("Scanned:")
+        typer.echo(stats["scanned"])
+        typer.echo()
+        typer.echo("Concepts Created:")
+        typer.echo(stats["concepts_created"])
+        typer.echo()
+        typer.echo("Relationships Created:")
+        typer.echo(stats["relationships_created"])
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("list")
+def concepts_list(limit: int = 50):
+    """List concepts ordered by connection count."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        results = service.list_concepts(limit=limit)
+        typer.echo("CONCEPT | CONNECTIONS")
+        for obj, count in results:
+            typer.echo(f"{obj.title} | {count}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("show")
+def concepts_show(concept: str):
+    """Show details of a specific concept and its connected memories."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        concept_obj = service.get_concept_by_name(concept)
+        if not concept_obj:
+            typer.echo(f"Error: Concept '{concept}' not found")
+            raise typer.Exit(code=1)
+        
+        typer.echo("Concept:")
+        typer.echo(concept_obj.title)
+        typer.echo()
+        typer.echo("Connected Memories:")
+        
+        memories = service.get_connected_memories(concept_obj.id)
+        for mem in memories:
+            typer.echo(f"- {mem.title}")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     app()
+
 
 

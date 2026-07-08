@@ -12,6 +12,8 @@ class ObjectType(str, Enum):
     TRANSACTION = "transaction"
     MERCHANT = "merchant"
     IDEA = "idea"
+    CONCEPT = "concept"
+
 
 class RegistryObjectBase(BaseModel):
     object_type: ObjectType
@@ -50,6 +52,9 @@ class RegistryObject(RegistryObjectBase):
 class RegistryRelationshipBase(BaseModel):
     relationship_type: str = Field(..., min_length=1)
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    evidence_json: Optional[str] = None
+    relationship_source: Optional[str] = None
+
 
 class RegistryRelationshipCreate(RegistryRelationshipBase):
     from_object_id: int

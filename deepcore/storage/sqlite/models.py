@@ -36,7 +36,10 @@ class RegistryRelationship(Base):
     to_object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False)
     relationship_type = Column(String, nullable=False)
     confidence = Column(Float, nullable=False, default=1.0)
+    evidence_json = Column(Text, nullable=True)
+    relationship_source = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_utc_now, nullable=False)
+
 
 
 class SyncRun(Base):
@@ -93,3 +96,14 @@ def run_migrations(engine) -> None:
         if "objects_missing" not in run_columns:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE sync_runs ADD COLUMN objects_missing INTEGER DEFAULT 0;"))
+
+    # Check registry_relationships columns (handles incremental migration for evidence_json and relationship_source)
+    if "registry_relationships" in inspector.get_table_names():
+        rel_columns = [col["name"] for col in inspector.get_columns("registry_relationships")]
+        if "evidence_json" not in rel_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE registry_relationships ADD COLUMN evidence_json TEXT;"))
+        if "relationship_source" not in rel_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE registry_relationships ADD COLUMN relationship_source TEXT;"))
+

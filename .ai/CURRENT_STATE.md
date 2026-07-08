@@ -67,6 +67,25 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 
 ---
 
+## Phase 4 Completion
+
+Phase 4 Concept Extraction started. DeepCore can now build first-class ontology building blocks from memories.
+
+### Capabilities
+
+- **Ontology Foundation Models**: First-class concept objects of `object_type = "concept"` stored in the registry, and enriched `registry_relationships` holding extraction evidence.
+- **Enriched Relationships Table**: Programmatic migration safely adding `evidence_json` and `relationship_source` to support tracking how relationships were discovered.
+- **Deterministic Concept Extraction**: `ConceptService` extracts candidates via headings, technical term matching (PascalCase, ALLCAPS, numeric), and frequency detection.
+- **Unique Logical Identity Matching**: Normalizes and deduplicates concepts using `normalized_key` in `metadata_json` under strict `status = "active"` constraints.
+- **Concepts CLI Commands**: `deepcore concepts extract` for bulk running, `deepcore concepts list` sorted by connection frequency, and `deepcore concepts show <concept>` to inspect connected memories.
+
+### Validation
+
+- Self-healing database migration safety tests confirming database upgrades preserve existing tables and contents.
+- Robust test suite in [test_concepts.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concepts.py) verifying heading, technical term, repeated phrase extraction, duplicate resolution, active status limits, and CLI commands.
+
+---
+
 ## Active Capabilities
 
 - **State-aware Syncing**: Automatically handles renames, copies, updates, and restores using content hashes.
@@ -74,6 +93,7 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 - **Registry stats calculations**: Breakdown of total objects by type and source system.
 - **Deterministic Memory Retrieval**: Retrieve active memories by case-insensitive search queries, display detailed object properties by database ID or UUID, and list recent active memories.
 - **Content Indexing and Search**: Build a derived content index of active markdown files, update indexed content on file modifications, and query raw text content deterministically.
+- **Concept Extraction and Linking**: Extract candidate concepts deterministically from indexed raw text, resolve duplicates using a logical normalized key identity, and map mentions relationships holding confidence and detailed validation evidence.
 
 ---
 
