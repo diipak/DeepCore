@@ -251,8 +251,10 @@ class ConceptService:
 
         if not show_ignored:
             query = query.filter(
-                func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') != "ignored"
+                (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') != "ignored") |
+                (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') == None)
             )
+
 
         results = query.group_by(
             DBRegistryObject.id

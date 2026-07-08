@@ -111,41 +111,70 @@ def test_ignore_concept(db_session):
     assert meta["concept_status"] == "ignored"
 
 
-def test_merge_concepts_safety_and_evidence(tmp_path, db_session):
+def test_merge_concepts_safety_and_evidence(db_session):
     """Verify merging reroutes relationships, handles duplicate relationships cleanly, and records origins in evidence_json."""
     registry = RegistryService(db_session)
-    content_service = ContentService(db_session)
     concept_service = ConceptService(db_session)
     
-    # Create two source files referencing variants of Git
-    f1 = tmp_path / "n1.md"
-    f1.write_text("# GitHUB\nGitHUB is cool.")
-    f2 = tmp_path / "n2.md"
-    f2.write_text("# GitHub\nGitHub is cool.")
-    
-    o1 = registry.register_object(RegistryObjectCreate(
-        object_type=ObjectType.NOTE, title="N1", source_system="markdown", location=str(f1), status="active"
+    # 1. Manually register two distinct concepts
+    src = registry.register_object(RegistryObjectCreate(
+        object_type=ObjectType.CONCEPT,
+        title="Starlette",
+        source_system="deepcore",
+        status="active",
+        metadata_json=json.dumps({"normalized_key": "starlette", "concept_status": "candidate", "concept_type": "unknown"})
     ))
-    o2 = registry.register_object(RegistryObjectCreate(
-        object_type=ObjectType.NOTE, title="N2", source_system="markdown", location=str(f2), status="active"
+    tgt = registry.register_object(RegistryObjectCreate(
+        object_type=ObjectType.CONCEPT,
+        title="FastAPI",
+        source_system="deepcore",
+        status="active",
+        metadata_json=json.dumps({"normalized_key": "fastapi", "concept_status": "candidate", "concept_type": "unknown"})
     ))
     
-    content_service.index_object(o1.id)
-    content_service.index_object(o2.id)
-    
-    # Extract concepts
-    concept_service.extract_from_object(o1.id)
-    concept_service.extract_from_object(o2.id)
-    
-    src = concept_service.get_concept_by_name("GitHUB")
-    tgt = concept_service.get_concept_by_name("GitHub")
-    
-    assert src is not None
-    assert tgt is not None
     assert src.id != tgt.id
     
-    # Now merge GitHUB into GitHub
-    concept_service.merge_concepts("GitHUB", "GitHub")
+    # Create test notes
+    o1 = registry.register_object(RegistryObjectCreate(
+        object_type=ObjectType.NOTE, title="N1", source_system="markdown", status="active"
+    ))
+    o2 = registry.register_object(RegistryObjectCreate(
+        object_type=ObjectType.NOTE, title="N2", source_system="markdown", status="active"
+    ))
+    o3 = registry.register_object(RegistryObjectCreate(
+        object_type=ObjectType.NOTE, title="N3", source_system="markdown", status="active"
+    ))
+    
+    # Create relationships:
+    # - o1 mentions src (Starlette)
+    # - o2 mentions tgt (FastAPI)
+    # - o3 mentions BOTH src (Starlette) and tgt (FastAPI) (to test duplicate relationship merging)
+    rel1 = DBRegistryRelationship(
+        from_object_id=o1.id, to_object_id=src.id, relationship_type="mentions",
+        evidence_json=json.dumps({"extractor": "concept_v0.1", "methods": ["technical_term"], "occurrences": 1}),
+        relationship_source="concept_v0.1"
+    )
+    rel2 = DBRegistryRelationship(
+        from_object_id=o2.id, to_object_id=tgt.id, relationship_type="mentions",
+        evidence_json=json.dumps({"extractor": "concept_v0.1", "methods": ["technical_term"], "occurrences": 2}),
+        relationship_source="concept_v0.1"
+    )
+    rel3_src = DBRegistryRelationship(
+        from_object_id=o3.id, to_object_id=src.id, relationship_type="mentions",
+        evidence_json=json.dumps({"extractor": "concept_v0.1", "methods": ["technical_term"], "occurrences": 3}),
+        relationship_source="concept_v0.1"
+    )
+    rel3_tgt = DBRegistryRelationship(
+        from_object_id=o3.id, to_object_id=tgt.id, relationship_type="mentions",
+        evidence_json=json.dumps({"extractor": "concept_v0.1", "methods": ["heading"], "occurrences": 4}),
+        relationship_source="concept_v0.1"
+    )
+    
+    db_session.add_all([rel1, rel2, rel3_src, rel3_tgt])
+    db_session.commit()
+    
+    # 2. Merge Starlette (src) into FastAPI (tgt)
+    concept_service.merge_concepts("Starlette", "FastAPI")
     
     # Verify source status and metadata
     db_session.refresh(src)
@@ -153,57 +182,34 @@ def test_merge_concepts_safety_and_evidence(tmp_path, db_session):
     src_meta = json.loads(src.metadata_json)
     assert src_meta["merged_into"] == tgt.id
     
-    # Verify relationships are rerouted and duplicates combined
-    # Note 1 referenced GitHUB (which was merged into GitHub). It did NOT reference GitHub before.
-    # Note 2 referenced GitHub.
-    # We should have one relationship from o1 to GitHub and one from o2 to GitHub.
-    rel_o1 = db_session.query(DBRegistryRelationship).filter(
-        DBRegistryRelationship.from_object_id == o1.id,
-        DBRegistryRelationship.to_object_id == tgt.id
-    ).first()
-    assert rel_o1 is not None
+    # Verify rel1 was rerouted to tgt (FastAPI) since o1 didn't mention tgt before
+    db_session.refresh(rel1)
+    assert rel1.to_object_id == tgt.id
     
-    # Create a situation where a single note references BOTH concepts to test duplicate merging
-    f3 = tmp_path / "n3.md"
-    f3.write_text("# GitHUB and GitHub\nBoth GitHUB and GitHub appear here.")
-    o3 = registry.register_object(RegistryObjectCreate(
-        object_type=ObjectType.NOTE, title="N3", source_system="markdown", location=str(f3), status="active"
-    ))
-    content_service.index_object(o3.id)
+    # Verify rel2 remains unchanged
+    db_session.refresh(rel2)
+    assert rel2.to_object_id == tgt.id
     
-    # We manually create the two concepts again or merge them after extraction
-    # Let's extract on o3
-    # Wait, because GitHUB already has status='merged' in database, the extractor
-    # will find the existing GitHUB concept and existing GitHub concept, and link them.
-    # Let's verify it links them
-    concept_service.extract_from_object(o3.id)
+    # Verify rel3_src was deleted, and rel3_tgt merged its evidence
+    assert db_session.query(DBRegistryRelationship).filter(DBRegistryRelationship.id == rel3_src.id).first() is None
     
-    # Verify relationships from o3 to src (GitHUB) and tgt (GitHub) exist
-    rel_src = db_session.query(DBRegistryRelationship).filter(
-        DBRegistryRelationship.from_object_id == o3.id,
-        DBRegistryRelationship.to_object_id == src.id
-    ).first()
-    rel_tgt = db_session.query(DBRegistryRelationship).filter(
-        DBRegistryRelationship.from_object_id == o3.id,
-        DBRegistryRelationship.to_object_id == tgt.id
-    ).first()
+    db_session.refresh(rel3_tgt)
+    evidence = json.loads(rel3_tgt.evidence_json)
+    # occurrences: 4 (target) + 3 (source) = 7
+    assert evidence["occurrences"] == 7
+    # methods: union of ["technical_term"] and ["heading"] = ["heading", "technical_term"]
+    assert "technical_term" in evidence["methods"]
+    assert "heading" in evidence["methods"]
     
-    assert rel_src is not None
-    assert rel_tgt is not None
-    
-    # Perform another merge operation (merging same concepts, which will trigger the duplicate relationship logic)
-    concept_service.merge_concepts("GitHUB", "GitHub")
-    
-    # Check that relationship from o3 to src is deleted
-    assert db_session.query(DBRegistryRelationship).filter(DBRegistryRelationship.id == rel_src.id).first() is None
-    
-    # Check that target relationship is preserved and has merged evidence
-    db_session.refresh(rel_tgt)
-    evidence = json.loads(rel_tgt.evidence_json)
-    assert evidence["occurrences"] >= 2
+    # Verify merge origin information is preserved
     assert "merge_origins" in evidence
-    assert len(evidence["merge_origins"]) > 0
-    assert evidence["merge_origins"][0]["merged_concept_id"] == src.id
+    assert len(evidence["merge_origins"]) == 1
+    origin = evidence["merge_origins"][0]
+    assert origin["merged_concept_id"] == src.id
+    assert origin["merged_concept_title"] == "Starlette"
+    assert origin["merged_concept_key"] == "starlette"
+    assert origin["occurrences"] == 3
+
 
 
 def test_list_concepts_filtering(db_session):

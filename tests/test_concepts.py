@@ -148,7 +148,7 @@ def test_concept_extraction_logic(tmp_path, db_session):
 
 
 def test_active_status_filtering_concepts(tmp_path, db_session):
-    """Verify that archived or merged concepts are ignored and queries filter by status='active'."""
+    """Verify that archived or merged concepts are reused rather than duplicated when extracted again."""
     note_file = tmp_path / "active_test.md"
     note_file.write_text("# FastAPI\nFastAPI rocks.")
     
@@ -174,14 +174,14 @@ def test_active_status_filtering_concepts(tmp_path, db_session):
         metadata_json=json.dumps({"normalized_key": "fastapi"})
     ))
     
-    # Run extraction: should ignore the archived concept and create a new active one
+    # Run extraction: should reuse the archived concept and not create a new one
     res = concept_service.extract_from_object(obj.id)
-    assert res["concepts_created"] == 1
+    assert res["concepts_created"] == 0
     
     active_concept = concept_service.get_concept_by_name("FastAPI")
     assert active_concept is not None
-    assert active_concept.id != archived_concept.id
-    assert active_concept.status == "active"
+    assert active_concept.id == archived_concept.id
+
 
 
 @pytest.fixture

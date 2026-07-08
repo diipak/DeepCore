@@ -109,13 +109,14 @@ def test_markdown_indexing_lifecycle_and_search(tmp_path, db_session):
     
     # 4. Modifying file updates content hash
     note_file.write_text("Build a RAG system using local files and SQLite LIKE.")
+    old_hash = str(idx_entry.content_hash)
     # Re-index
     idx_entry_updated = content_service.index_object(obj.id)
     assert idx_entry_updated is not None
     assert idx_entry_updated.id == idx_entry.id
     assert idx_entry_updated.raw_text == "Build a RAG system using local files and SQLite LIKE."
     assert idx_entry_updated.word_count == 10
-    assert idx_entry_updated.content_hash != idx_entry.content_hash
+    assert idx_entry_updated.content_hash != old_hash
     
     # 5. Missing source files handled safely
     os.remove(note_file)
