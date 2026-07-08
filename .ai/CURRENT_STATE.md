@@ -114,3 +114,20 @@ Phase 4 Concept Extraction started. DeepCore can now build first-class ontology 
   - Obsidian Canvas files parsing
 - **Registry Relationship Management**:
   - Implement association layer endpoints (`registry_relationships` CRUD operations) to connect notes and videos.
+
+---
+
+## CLI Packaging Validation
+
+Whenever CLI/package configuration changes:
+
+Required verification:
+
+```bash
+pip install -e .
+cd /tmp
+deepcore --help
+```
+
+Reason: Prevents hidden dependency on the current working directory.
+
