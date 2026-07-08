@@ -237,6 +237,9 @@ class ConceptService:
 
     def list_concepts(self, limit: int = 50, show_ignored: bool = False) -> List[Tuple[DBRegistryObject, int]]:
         """Return active concepts ordered by connection (relationship) count descending."""
+        if isinstance(show_ignored, str):
+            show_ignored = show_ignored.lower() in ("true", "1", "yes", "t", "y")
+
         # 1. Start query from concept table
         query = self.db.query(DBRegistryObject).filter(
             DBRegistryObject.object_type == "concept",

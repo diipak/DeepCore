@@ -8,6 +8,8 @@ click_unset = sig.parameters["flag_value"].default
 
 orig_init = TyperOption.__init__
 def patched_init(self, *args, **kwargs):
+    if kwargs.get("is_flag") is True and kwargs.get("type") is None:
+        kwargs["type"] = click.BOOL
     if kwargs.get("flag_value") is None and kwargs.get("is_flag") is not True:
         if kwargs.get("type") != click.BOOL:
             kwargs["flag_value"] = click_unset
@@ -368,14 +370,23 @@ def concepts_extract():
 @concepts_app.command("list")
 def concepts_list(
     limit: int = 50,
-    show_ignored: bool = typer.Option(False, "--show-ignored", help="Show ignored concepts as well")
+    show_ignored: bool = False
 ):
     """List concepts ordered by connection count."""
     db = SessionLocal()
     try:
         from deepcore.core.concepts.service import ConceptService
+        
+        # Coerce show_ignored to boolean
+        val_show_ignored = False
+        if show_ignored is not None:
+            if isinstance(show_ignored, str):
+                val_show_ignored = show_ignored.lower() in ("true", "1", "yes", "t", "y")
+            else:
+                val_show_ignored = bool(show_ignored)
+                
         service = ConceptService(db)
-        results = service.list_concepts(limit=limit, show_ignored=show_ignored)
+        results = service.list_concepts(limit=limit, show_ignored=val_show_ignored)
         typer.echo("CONCEPT | CONNECTIONS")
         for obj, count in results:
             typer.echo(f"{obj.title} | {count}")
