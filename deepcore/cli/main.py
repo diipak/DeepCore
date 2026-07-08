@@ -366,13 +366,16 @@ def concepts_extract():
         db.close()
 
 @concepts_app.command("list")
-def concepts_list(limit: int = 50):
+def concepts_list(
+    limit: int = 50,
+    show_ignored: bool = typer.Option(False, "--show-ignored", help="Show ignored concepts as well")
+):
     """List concepts ordered by connection count."""
     db = SessionLocal()
     try:
         from deepcore.core.concepts.service import ConceptService
         service = ConceptService(db)
-        results = service.list_concepts(limit=limit)
+        results = service.list_concepts(limit=limit, show_ignored=show_ignored)
         typer.echo("CONCEPT | CONNECTIONS")
         for obj, count in results:
             typer.echo(f"{obj.title} | {count}")
@@ -388,14 +391,29 @@ def concepts_show(concept: str):
     db = SessionLocal()
     try:
         from deepcore.core.concepts.service import ConceptService
+        import json
         service = ConceptService(db)
         concept_obj = service.get_concept_by_name(concept)
         if not concept_obj:
             typer.echo(f"Error: Concept '{concept}' not found")
             raise typer.Exit(code=1)
         
+        try:
+            metadata = json.loads(concept_obj.metadata_json) if concept_obj.metadata_json else {}
+        except Exception:
+            metadata = {}
+            
+        concept_type = metadata.get("concept_type", "unknown")
+        concept_status = metadata.get("concept_status", "candidate")
+        
         typer.echo("Concept:")
         typer.echo(concept_obj.title)
+        typer.echo()
+        typer.echo("Type:")
+        typer.echo(concept_type)
+        typer.echo()
+        typer.echo("Status:")
+        typer.echo(concept_status)
         typer.echo()
         typer.echo("Connected Memories:")
         
@@ -404,6 +422,54 @@ def concepts_show(concept: str):
             typer.echo(f"- {mem.title}")
     except typer.Exit:
         raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("ignore")
+def concepts_ignore(name: str):
+    """Mark a concept as ignored."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.ignore_concept(name)
+        typer.echo(f"Concept '{name}' marked as ignored.")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("approve")
+def concepts_approve(
+    name: str,
+    type: str = typer.Option("unknown", "--type", help="Concept type (tool, technology, project, person, organization, unknown)")
+):
+    """Approve a concept and set its type."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.approve_concept(name, concept_type=type)
+        typer.echo(f"Concept '{name}' approved with type '{type}'.")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("merge")
+def concepts_merge(source: str, target: str):
+    """Merge a source concept into a target concept, rerouting relationships."""
+    db = SessionLocal()
+    try:
+        from deepcore.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.merge_concepts(source, target)
+        typer.echo(f"Concept '{source}' merged into '{target}'.")
     except Exception as e:
         typer.echo(f"Error: {e}")
         raise typer.Exit(code=1)

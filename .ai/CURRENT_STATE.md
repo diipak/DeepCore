@@ -69,7 +69,7 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 
 ## Phase 4 Completion
 
-Phase 4 Concept Extraction started. DeepCore can now build first-class ontology building blocks from memories.
+Phase 4 Concept Extraction and Governance started. DeepCore can now build first-class ontology building blocks from memories with a robust governance lifecycle.
 
 ### Capabilities
 
@@ -77,12 +77,17 @@ Phase 4 Concept Extraction started. DeepCore can now build first-class ontology 
 - **Enriched Relationships Table**: Programmatic migration safely adding `evidence_json` and `relationship_source` to support tracking how relationships were discovered.
 - **Deterministic Concept Extraction**: `ConceptService` extracts candidates via headings, technical term matching (PascalCase, ALLCAPS, numeric), and frequency detection.
 - **Unique Logical Identity Matching**: Normalizes and deduplicates concepts using `normalized_key` in `metadata_json` under strict `status = "active"` constraints.
-- **Concepts CLI Commands**: `deepcore concepts extract` for bulk running, `deepcore concepts list` sorted by connection frequency, and `deepcore concepts show <concept>` to inspect connected memories.
+- **Concepts CLI Commands**: `deepcore concepts extract` for bulk running, `deepcore concepts list` (hiding ignored and merged by default), and `deepcore concepts show <concept>` to inspect connected memories.
+- **Concept Governance**: Allows lifecycle status management (`candidate`, `approved`, `ignored`) and type classification (`tool`, `technology`, `project`, `person`, `organization`, `unknown`) stored cleanly inside `metadata_json`.
+- **CLI Governance Commands**: `deepcore concepts ignore`, `deepcore concepts approve [--type]`, and `deepcore concepts merge` to manage the ontology dynamically.
+- **Merge and Duplicate Safety**: Automatically reroutes relationships during merges, combines duplicate relationships to avoid duplicate edges, sums occurrences, and records merge origin trails in `evidence_json`.
+- **Self-Healing Metadata Migration**: Automatically updates legacy concepts created before governance to have default candidate status and unknown type on-the-fly when read.
 
 ### Validation
 
 - Self-healing database migration safety tests confirming database upgrades preserve existing tables and contents.
 - Robust test suite in [test_concepts.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concepts.py) verifying heading, technical term, repeated phrase extraction, duplicate resolution, active status limits, and CLI commands.
+- Governance test suite in [test_concept_governance.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concept_governance.py) verifying type whitelist validation, ignore/approve/merge transitions, self-healing metadata migration on read, duplicate relationship merging, and listing filters.
 
 ---
 
@@ -94,6 +99,7 @@ Phase 4 Concept Extraction started. DeepCore can now build first-class ontology 
 - **Deterministic Memory Retrieval**: Retrieve active memories by case-insensitive search queries, display detailed object properties by database ID or UUID, and list recent active memories.
 - **Content Indexing and Search**: Build a derived content index of active markdown files, update indexed content on file modifications, and query raw text content deterministically.
 - **Concept Extraction and Linking**: Extract candidate concepts deterministically from indexed raw text, resolve duplicates using a logical normalized key identity, and map mentions relationships holding confidence and detailed validation evidence.
+- **Concept Governance**: Lifecycle status management (`candidate`, `approved`, `ignored`) and type classification (`tool`, `technology`, `project`, `person`, `organization`, `unknown`) stored inside `metadata_json` with safe merge mechanics.
 
 ---
 
