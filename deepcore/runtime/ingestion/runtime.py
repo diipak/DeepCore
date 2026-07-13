@@ -1,28 +1,24 @@
 from typing import Dict, List, Any, Type
 from sqlalchemy.orm import Session
 
-from deepcore.runtime.ingestion.callbacks import IngestionCallback
+from deepcore.runtime.processing.runtime import ProcessingRuntime
 
 class IngestionRuntime:
     """
     Orchestration layer responsible for executing the Knowledge Ingestion workflow.
-    Resolves providers, triggers sync execution, records stats, and runs lifecycle callbacks.
+    Resolves providers, triggers sync execution, records stats, and delegates downstream processing.
     """
-    def __init__(self):
+    def __init__(self, processing_runtime: ProcessingRuntime):
         self._providers: Dict[str, Type[Any]] = {}
-        self._callbacks: List[IngestionCallback] = []
+        self.processing_runtime = processing_runtime
 
     def register_provider(self, name: str, provider_class: Type[Any]) -> None:
         """Register an ingestion provider class under a specific source name."""
         self._providers[name.lower()] = provider_class
 
-    def register_callback(self, callback: IngestionCallback) -> None:
-        """Register a synchronous post-persistence lifecycle callback."""
-        self._callbacks.append(callback)
-
     def sync_provider(self, provider_name: str, db: Session, path: str) -> Any:
         """
-        Orchestrate provider synchronization and invoke registered lifecycle callbacks.
+        Orchestrate provider synchronization and delegate post-persistence logic to the Processing Runtime.
         """
         prov_name_lower = provider_name.lower()
         if prov_name_lower not in self._providers:
@@ -38,13 +34,8 @@ class IngestionRuntime:
         # 1. Execute sync (persistence)
         sync_result = provider.sync(registry_service)
 
-        # 2. Invoke lifecycle callbacks (e.g. content index update)
-        for callback in self._callbacks:
-            try:
-                callback(db, sync_result)
-            except Exception as e:
-                # Log or handle callback errors gracefully
-                print(f"Error executing ingestion callback: {e}")
+        # 2. Delegate downstream processing (Content Index, etc.) to the Processing Runtime
+        self.processing_runtime.execute(db, sync_result)
 
         # 3. Retrieve and return the sync run audit record
         runs = registry_service.list_sync_runs()

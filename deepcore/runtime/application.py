@@ -10,6 +10,7 @@ from deepcore.runtime.execution.runtime import ExecutionRuntime
 from deepcore.runtime.planner.runtime import PlannerRuntime
 from deepcore.runtime.conversation.runtime import ConversationRuntime
 from deepcore.runtime.ingestion.runtime import IngestionRuntime
+from deepcore.runtime.processing.runtime import ProcessingRuntime
 from deepcore.intelligence import ContextEngine
 
 class Application:
@@ -32,6 +33,7 @@ class Application:
         planner_runtime: PlannerRuntime,
         conversation_runtime: ConversationRuntime,
         ingestion_runtime: IngestionRuntime,
+        processing_runtime: ProcessingRuntime,
     ):
         self.config = config
         
@@ -49,6 +51,7 @@ class Application:
         self.capabilities_service = discovery_service
         self.conversation_service = conversation_runtime
         self.ingestion_service = ingestion_runtime
+        self.processing_service = processing_runtime
         
         self.status = "created"
         self._shutdown_hooks: List[Callable[[], None]] = []

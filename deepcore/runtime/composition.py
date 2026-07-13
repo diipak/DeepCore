@@ -26,7 +26,8 @@ from deepcore.runtime.execution.runtime import ExecutionRuntime
 from deepcore.runtime.planner.runtime import PlannerRuntime
 from deepcore.runtime.conversation.runtime import ConversationRuntime
 from deepcore.runtime.ingestion.runtime import IngestionRuntime
-from deepcore.runtime.ingestion.callbacks import ContentIndexCallback
+from deepcore.runtime.processing.runtime import ProcessingRuntime
+from deepcore.runtime.processing.stages import ContentIndexStage
 from deepcore.core.providers.markdown import MarkdownProvider
 from deepcore.core.registry.service import RegistryService
 
@@ -84,10 +85,12 @@ class CompositionRoot:
         conversation_runtime = ConversationRuntime(planner_runtime)
         discovery_service = CapabilityDiscoveryService(capability_registry)
 
-        # Ingestion Runtime construction
-        ingestion_runtime = IngestionRuntime()
+        # Ingestion & Processing Runtime construction
+        processing_runtime = ProcessingRuntime()
+        processing_runtime.register_stage(ContentIndexStage())
+
+        ingestion_runtime = IngestionRuntime(processing_runtime)
         ingestion_runtime.register_provider("markdown", MarkdownProvider)
-        ingestion_runtime.register_callback(ContentIndexCallback())
 
         # 7. Perform Startup Integrity Validation
         self._validate_integrity(capability_registry, execution_registry)
@@ -105,7 +108,8 @@ class CompositionRoot:
             execution_runtime=execution_runtime,
             planner_runtime=planner_runtime,
             conversation_runtime=conversation_runtime,
-            ingestion_runtime=ingestion_runtime
+            ingestion_runtime=ingestion_runtime,
+            processing_runtime=processing_runtime
         )
         app.status = "ready"
         return app
