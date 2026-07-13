@@ -1,7 +1,7 @@
 ---
-Category: Specification
-Status: Approved
-Dependencies: [architecture/EXPERIENCE_DESIGN.md, governance/PRODUCT_VISION.md]
+Category: Design
+Status: Stable
+Dependencies: [architecture/EXPERIENCE_DESIGN.md, architecture/PRODUCT_VISION.md]
 Source-of-truth: True
 ---
 

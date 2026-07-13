@@ -1,6 +1,6 @@
 ---
 Category: Architecture
-Status: Approved
+Status: Stable
 Dependencies: []
 Source-of-truth: True
 ---

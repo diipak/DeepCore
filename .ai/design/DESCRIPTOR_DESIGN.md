@@ -1,6 +1,6 @@
 ---
-Category: Specification
-Status: Approved
+Category: Design
+Status: Stable
 Dependencies: [architecture/ARCHITECTURE.md]
 Source-of-truth: True
 ---

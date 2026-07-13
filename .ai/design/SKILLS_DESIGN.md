@@ -1,7 +1,7 @@
 ---
-Category: Specification
-Status: Approved
-Dependencies: [specifications/TOOLS_DESIGN.md]
+Category: Design
+Status: Stable
+Dependencies: [design/TOOLS_DESIGN.md]
 Source-of-truth: True
 ---
 

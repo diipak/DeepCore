@@ -1,6 +1,6 @@
 ---
-Category: Governance
-Status: Approved
+Category: Architecture
+Status: Stable
 Dependencies: []
 Source-of-truth: True
 ---

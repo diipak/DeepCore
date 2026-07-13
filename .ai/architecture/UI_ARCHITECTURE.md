@@ -1,6 +1,6 @@
 ---
 Category: Architecture
-Status: Approved
+Status: Stable
 Dependencies: [architecture/ARCHITECTURE.md, architecture/EXPERIENCE_DESIGN.md]
 Source-of-truth: True
 ---

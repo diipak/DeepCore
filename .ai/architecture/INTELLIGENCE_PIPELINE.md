@@ -1,7 +1,7 @@
 ---
 Category: Architecture
-Status: Approved
-Dependencies: [governance/PRODUCT_VISION.md, architecture/ARCHITECTURE.md]
+Status: Stable
+Dependencies: [architecture/PRODUCT_VISION.md, architecture/ARCHITECTURE.md]
 Source-of-truth: True
 ---
 

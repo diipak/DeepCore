@@ -1,6 +1,6 @@
 ---
 Category: Agent
-Status: Approved
+Status: Stable
 Dependencies: [governance/DeepCore_Development_Protocol.md]
 Source-of-truth: True
 ---
@@ -33,7 +33,7 @@ You preserve them.
 Review:
 
 - README.md
-- .ai/specifications/CONTEXT.md
+- .ai/design/CONTEXT.md
 - .ai/governance/CURRENT_STATE.md
 - Relevant architecture documents
 
@@ -104,7 +104,7 @@ refactor(provider): simplify provider interface
 
 ## 4. Maintain AI Context
 
-Keep .ai/specifications/CONTEXT.md updated.
+Keep .ai/design/CONTEXT.md updated.
 
 It should explain:
 

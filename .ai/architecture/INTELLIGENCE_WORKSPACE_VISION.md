@@ -1,7 +1,7 @@
 ---
-Category: Governance
-Status: Approved
-Dependencies: [governance/PRODUCT_VISION.md]
+Category: Architecture
+Status: Stable
+Dependencies: [architecture/PRODUCT_VISION.md]
 Source-of-truth: True
 ---
 

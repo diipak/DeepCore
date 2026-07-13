@@ -1,6 +1,6 @@
 ---
 Category: Architecture
-Status: Approved
+Status: Stable
 Dependencies: [architecture/ARCHITECTURE.md, architecture/INTELLIGENCE_PIPELINE.md]
 Source-of-truth: True
 ---
