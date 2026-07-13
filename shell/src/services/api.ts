@@ -168,6 +168,16 @@ export const api = {
 
   async getStats(): Promise<SystemStats> {
     return fetchJson<SystemStats>('/api/stats');
+  },
+
+  async syncProvider(provider: string, path: string): Promise<any> {
+    return fetchJson<any>(`/api/providers/${provider}/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ path }),
+    });
   }
 };
 

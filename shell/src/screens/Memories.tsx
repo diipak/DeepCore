@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import type { RegistryObject } from '../services/api';
 import { MemoryCard } from '../components/MemoryCard';
 import { SearchInput } from '../components/SearchInput';
-import { BookOpen, AlertCircle, Sparkles } from 'lucide-react';
+import { BookOpen, AlertCircle, Sparkles, RefreshCw } from 'lucide-react';
 
 type FilterType = 'all' | 'note' | 'video' | 'document';
 
@@ -13,6 +13,26 @@ export const Memories: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeType, setActiveType] = useState<FilterType>('all');
+
+  const [syncPath, setSyncPath] = useState<string>('/Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/demo/markdown');
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<any | null>(null);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncError(null);
+    setSyncResult(null);
+    try {
+      const res = await api.syncProvider('markdown', syncPath);
+      setSyncResult(res);
+      fetchMemories();
+    } catch (err: any) {
+      setSyncError(err.message || 'Synchronization failed');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const fetchMemories = async () => {
     setLoading(true);
@@ -56,6 +76,72 @@ export const Memories: React.FC = () => {
       <div>
         <h2 className="text-3xl font-extrabold text-text-primary tracking-tight">Memories</h2>
         <p className="text-text-secondary mt-1 text-sm font-medium">Browse and search through your personal library of knowledge.</p>
+      </div>
+
+      {/* Sync Card */}
+      <div className="bg-surface-card border border-border-primary rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex items-center space-x-2">
+          <div className="p-2 rounded-lg bg-accent-primary/10 text-accent-primary">
+            <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-text-primary">Sync Markdown Folder</h3>
+            <p className="text-xs text-text-secondary">Ingest local markdown files into your canonical knowledge graph.</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            value={syncPath}
+            onChange={(e) => setSyncPath(e.target.value)}
+            disabled={syncing}
+            className="flex-1 bg-background-primary border border-border-primary rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary disabled:opacity-60 font-mono"
+            placeholder="Absolute folder path (e.g. /path/to/notes)"
+          />
+          <button
+            onClick={handleSync}
+            disabled={syncing || !syncPath.trim()}
+            className="px-5 py-2.5 bg-accent-primary text-white rounded-xl font-semibold hover:bg-accent-primary/95 transition-all text-xs cursor-pointer flex items-center justify-center space-x-2 shrink-0 disabled:opacity-60"
+          >
+            {syncing ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Syncing...</span>
+              </>
+            ) : (
+              <span>Sync Now</span>
+            )}
+          </button>
+        </div>
+
+        {syncError && (
+          <div className="flex items-center space-x-2 text-xs text-red-500 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{syncError}</span>
+          </div>
+        )}
+
+        {syncResult && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-background-primary/40 p-4 rounded-xl border border-border-primary/40 text-center animate-fade-in">
+            <div className="space-y-1">
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Scanned</span>
+              <span className="text-lg font-extrabold text-text-primary">{syncResult.objects_scanned}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">New</span>
+              <span className="text-lg font-extrabold text-green-500">+{syncResult.objects_created}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Unchanged</span>
+              <span className="text-lg font-extrabold text-text-primary">{syncResult.objects_existing}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Missing</span>
+              <span className="text-lg font-extrabold text-yellow-500">{syncResult.objects_missing}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Explorer Controls */}

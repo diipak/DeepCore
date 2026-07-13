@@ -80,6 +80,21 @@ export const MemoryDetail: React.FC = () => {
     );
   }
 
+  // Parse provider details from metadata_json
+  let relativePath = '';
+  let folder = '';
+  let providerName = 'Markdown';
+  if (details.metadata_json) {
+    try {
+      const meta = JSON.parse(details.metadata_json);
+      relativePath = meta.relative_path || '';
+      folder = meta.folder || '';
+      providerName = meta.provider || details.source || 'Markdown';
+    } catch (e) {
+      // ignore
+    }
+  }
+
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl mx-auto w-full select-text pb-12">
       {/* Navigation Back Context */}
@@ -97,6 +112,39 @@ export const MemoryDetail: React.FC = () => {
           <h2 className="text-2xl md:text-3xl font-extrabold text-text-primary tracking-tight leading-tight">
             {details.title}
           </h2>
+        </div>
+
+        {/* Metadata Inspector */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-background-primary/45 rounded-xl border border-border-primary/40 text-xs">
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Provider</span>
+            <span className="font-semibold text-text-primary capitalize">{providerName}</span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Source Name</span>
+            <span className="font-semibold text-text-primary font-mono">{details.source}</span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Relative Path</span>
+            <span className="font-semibold text-text-primary font-mono truncate block" title={relativePath || details.title}>
+              {relativePath || `${details.title}.md`}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider block">Imported</span>
+            <span className="font-semibold text-text-primary">
+              {new Date(details.created_at).toLocaleDateString()} {new Date(details.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+          <div className="col-span-full pt-2 border-t border-border-primary/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <div className="flex items-center space-x-1.5 min-w-0">
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider shrink-0">Canonical ID:</span>
+              <span className="font-mono text-[10px] text-text-secondary truncate select-all">{details.uuid}</span>
+            </div>
+            <div className="text-[9px] text-text-secondary/50 truncate font-mono">
+              Status: <span className="uppercase font-bold">{details.status}</span>
+            </div>
+          </div>
         </div>
 
         {/* Content Preview */}

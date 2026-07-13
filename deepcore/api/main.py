@@ -12,7 +12,8 @@ from deepcore.api.routes import (
     assistant_api_router,
     memories_api_router,
     conversation_api_router,
-    capabilities_api_router
+    capabilities_api_router,
+    providers_api_router
 )
 
 @asynccontextmanager
@@ -44,6 +45,7 @@ app.include_router(assistant_api_router)
 app.include_router(memories_api_router, prefix="/api")
 app.include_router(conversation_api_router, prefix="/api")
 app.include_router(capabilities_api_router, prefix="/api")
+app.include_router(providers_api_router, prefix="/api")
 
 
 
