@@ -226,6 +226,78 @@ export const MemoryDetail: React.FC = () => {
           )}
         </div>
 
+        {/* Deterministic Relationships */}
+        <div className="space-y-3 pt-6 border-t border-border-primary/60">
+          <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+            Deterministic Relationships
+          </h4>
+          {details.relationships && details.relationships.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-border-primary/45 text-text-secondary uppercase tracking-wider font-bold">
+                    <th className="py-2 pb-3">Related Object</th>
+                    <th className="py-2 pb-3">Type</th>
+                    <th className="py-2 pb-3">Confidence</th>
+                    <th className="py-2 pb-3">Evidence</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-primary/20 text-text-primary">
+                  {details.relationships.map((rel) => {
+                    let typeBadgeClass = "bg-background-primary/50 text-text-secondary";
+                    if (rel.relationship_type === "REFERENCES" || rel.relationship_type === "REFERENCED_BY") {
+                      typeBadgeClass = "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+                    } else if (rel.relationship_type === "CHILD_OF" || rel.relationship_type === "PARENT_OF") {
+                      typeBadgeClass = "bg-purple-500/10 text-purple-400 border border-purple-500/20";
+                    } else if (rel.relationship_type === "SAME_FOLDER") {
+                      typeBadgeClass = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                    } else if (rel.relationship_type === "SAME_PROJECT") {
+                      typeBadgeClass = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    } else if (rel.relationship_type === "DUPLICATE") {
+                      typeBadgeClass = "bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold";
+                    } else if (rel.relationship_type === "VERSION_OF") {
+                      typeBadgeClass = "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+                    }
+                    
+                    const evidenceDetail = rel.evidence?.detail || JSON.stringify(rel.evidence);
+                    
+                    return (
+                      <tr key={rel.uuid} className="hover:bg-background-primary/20 transition-colors">
+                        <td className="py-3 font-semibold pr-3">
+                          <Link 
+                            to={`/objects/${rel.target_object_uuid}`}
+                            className="hover:underline text-accent-primary"
+                          >
+                            {rel.target_object_title}
+                          </Link>
+                          <span className="text-[10px] text-text-secondary font-mono ml-2">
+                            ({rel.target_object_type})
+                          </span>
+                        </td>
+                        <td className="py-3 pr-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${typeBadgeClass}`}>
+                            {rel.relationship_type}
+                          </span>
+                        </td>
+                        <td className="py-3 font-mono pr-3">{(rel.confidence * 100).toFixed(0)}%</td>
+                        <td className="py-3 text-text-secondary italic max-w-xs truncate" title={evidenceDetail}>
+                          {evidenceDetail}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl border border-dashed border-border-primary text-center bg-background-primary/30">
+              <p className="text-xs text-text-secondary font-medium">
+                No deterministic relationships discovered yet
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Connected Concepts */}
         <div className="space-y-3 pt-6 border-t border-border-primary/60">
           <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">

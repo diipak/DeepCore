@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -21,6 +21,17 @@ class ReferencedObjectShort(BaseModel):
     object_type: str
     location: Optional[str] = None
 
+class RelationshipDetailResponse(BaseModel):
+    uuid: str
+    target_object_uuid: str
+    target_object_title: str
+    target_object_type: str
+    relationship_type: str
+    confidence: float
+    evidence: Optional[Any] = None
+    created_at: datetime
+    updated_at: datetime
+
 class ObjectDetailsResponse(BaseModel):
     uuid: str
     type: str
@@ -33,6 +44,7 @@ class ObjectDetailsResponse(BaseModel):
     updated_at: datetime
     connected_concepts: List[ConceptShort] = []
     referenced_objects: List[ReferencedObjectShort] = []
+    relationships: List[RelationshipDetailResponse] = []
 
 
 @router.get("", response_model=List[schemas.RegistryObject])

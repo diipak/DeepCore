@@ -1,3 +1,6 @@
+---
+tags: [deepcore, meeting]
+---
 # DeepCore Team Sync — 2026-07-13
 
 ## Attendees
@@ -13,3 +16,5 @@
 - We will implement the first vertical slice focusing on deterministic Markdown ingestion only.
 - Soft-deletes will mark missing files as `missing` instead of hard-deleting them.
 - Providers will remain pure (normalizing only), and indexing will be triggered as a downstream event in the API gateway.
+
+My tasks: [[Personal Tasks]]

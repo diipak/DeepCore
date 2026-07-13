@@ -108,6 +108,8 @@ Phase 4 Concept Extraction and Governance completed. DeepCore can now build firs
 - **Content Indexing and Search**: Build a derived content index of active markdown files, update indexed content on file modifications, and query raw text content deterministically.
 - **Concept Extraction and Linking**: Extract candidate concepts deterministically from indexed raw text, resolve duplicates using a logical normalized key identity, and map mentions relationships holding confidence and detailed validation evidence.
 - **Concept Governance**: Lifecycle status management (`candidate`, `approved`, `ignored`) and type classification (`tool`, `technology`, `project`, `person`, `organization`, `unknown`) stored inside `metadata_json` with safe merge mechanics.
+- **Deterministic Relationship Processing**: Extends ingestion pipeline with Stage 2 (Relationship Engine) executing rules for WikiLinks, parent-child hierarchies, folders, shared project tags, duplicates, and versions.
+- **Structured Evidence & Symmetrical Complements**: Stores structured JSON evidence (type, detail, location, producing stage), tracks provenance under `"relationship_engine"`, and commits relationships in both directions.
 
 ---
 
@@ -556,4 +558,31 @@ Exposed and validated the Capability Discovery API endpoints in the FastAPI Gate
 ### Validation
 
 - Clean execution passing all 4 tests in [test_capabilities_api.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_capabilities_api.py) verifying catalog structure, detailed view parameters, valid/invalid category filters, enabled/configurable selectors, and alphabetical sort checks.
-- Entire project-wide test suite successfully verified with 134/134 tests passing cleanly.
+- Entire project-wide test suite successfully verified with 156/156 tests passing cleanly.
+
+---
+
+## Capability 03 Completion — Deterministic Relationship Engine
+
+Implemented and validated the deterministic Relationship Processing Stage (Stage 2) in DeepCore's Ingestion Pipeline:
+
+### Capabilities
+
+- **Relationship Model**: Parameterized the canonical database relationship model with unique UUID and updated_at timestamps.
+- **Extensible Relationship Rules**: Implemented extensible rule-based relationship extractors for:
+  - `REFERENCES` & `REFERENCED_BY`: Wikilinks (`[[Note]]`) and standard markdown links (`[link](path)`).
+  - `SAME_FOLDER`: Matching parent directory paths.
+  - `SAME_SOURCE`: Matching source systems/providers.
+  - `SAME_PROJECT`: Matching shared project tags or hashtags.
+  - `CHILD_OF` & `PARENT_OF`: Parent hierarchy resolved via frontmatter `parent`.
+  - `DUPLICATE`: Shared content hashes.
+  - `VERSION_OF`: Target original versions via frontmatter `version_of`.
+- **Symmetrical Complements**: Automatically commits inverse complementary relationships (e.g. A REFERENCES B also creates B REFERENCED_BY A) to optimize graph lookups.
+- **Provenance & Structured Evidence**: Records the creator/producing stage in the `relationship_source` column and structures evidence with type, detail, location, and producing stage.
+- **Incremental Processing**: Deletes prior relationships created by the engine for updated objects, recalculates only for the sync targets, and purges relations for missing/archived files.
+- **UI Details Inspection Table**: Renders related objects, types, confidence percentages, and structured evidence explanations inside a premium frontend table in `MemoryDetail.tsx`.
+
+### Validation
+
+- Clean execution passing all tests in `tests/test_relationship_engine.py` covering WikiLinks, folder matching, tag sharing, parent hierarchies, duplicates, incremental edits, and duplicate prevention.
+- Project-wide test suite successfully verified with 159/159 tests passing cleanly.

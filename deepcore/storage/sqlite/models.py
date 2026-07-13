@@ -32,6 +32,7 @@ class RegistryRelationship(Base):
     __tablename__ = "registry_relationships"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String, unique=True, index=True, default=generate_uuid, nullable=False)
     from_object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False)
     to_object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False)
     relationship_type = Column(String, nullable=False)
@@ -39,6 +40,7 @@ class RegistryRelationship(Base):
     evidence_json = Column(Text, nullable=True)
     relationship_source = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_utc_now, nullable=False)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now, nullable=False)
 
 
 
@@ -97,7 +99,7 @@ def run_migrations(engine) -> None:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE sync_runs ADD COLUMN objects_missing INTEGER DEFAULT 0;"))
 
-    # Check registry_relationships columns (handles incremental migration for evidence_json and relationship_source)
+    # Check registry_relationships columns (handles incremental migration for evidence_json, relationship_source, uuid, updated_at)
     if "registry_relationships" in inspector.get_table_names():
         rel_columns = [col["name"] for col in inspector.get_columns("registry_relationships")]
         if "evidence_json" not in rel_columns:
@@ -106,4 +108,35 @@ def run_migrations(engine) -> None:
         if "relationship_source" not in rel_columns:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE registry_relationships ADD COLUMN relationship_source TEXT;"))
+        if "uuid" not in rel_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE registry_relationships ADD COLUMN uuid TEXT;"))
+            
+            # Generate UUIDs for any existing relationships
+            from sqlalchemy.orm import Session
+            db = Session(bind=engine)
+            try:
+                rows = db.execute(text("SELECT id FROM registry_relationships WHERE uuid IS NULL")).fetchall()
+                for row in rows:
+                    db.execute(
+                        text("UPDATE registry_relationships SET uuid = :uuid WHERE id = :id"),
+                        {"uuid": generate_uuid(), "id": row[0]}
+                    )
+                db.commit()
+            except Exception:
+                db.rollback()
+            finally:
+                db.close()
+
+            with engine.begin() as conn:
+                conn.execute(text("CREATE UNIQUE INDEX ix_registry_relationships_uuid ON registry_relationships (uuid);"))
+
+        if "updated_at" not in rel_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE registry_relationships ADD COLUMN updated_at DATETIME;"))
+            with engine.begin() as conn:
+                if "created_at" in rel_columns:
+                    conn.execute(text("UPDATE registry_relationships SET updated_at = created_at WHERE updated_at IS NULL;"))
+                else:
+                    conn.execute(text("UPDATE registry_relationships SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL;"))
 

@@ -83,6 +83,18 @@ export interface ReferencedObjectShort {
   location?: string;
 }
 
+export interface RelationshipDetailResponse {
+  uuid: string;
+  target_object_uuid: string;
+  target_object_title: string;
+  target_object_type: string;
+  relationship_type: string;
+  confidence: number;
+  evidence?: any;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ObjectDetailsResponse {
   uuid: string;
   type: string;
@@ -95,6 +107,7 @@ export interface ObjectDetailsResponse {
   updated_at: string;
   connected_concepts: ConceptShort[];
   referenced_objects?: ReferencedObjectShort[];
+  relationships?: RelationshipDetailResponse[];
 }
 
 export interface ConceptDetailResponse {

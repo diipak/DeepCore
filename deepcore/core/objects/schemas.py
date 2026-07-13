@@ -49,8 +49,20 @@ class RegistryObject(RegistryObjectBase):
     updated_at: datetime
 
 
+class RelationshipType(str, Enum):
+    REFERENCES = "REFERENCES"
+    REFERENCED_BY = "REFERENCED_BY"
+    SAME_FOLDER = "SAME_FOLDER"
+    SAME_SOURCE = "SAME_SOURCE"
+    SAME_PROJECT = "SAME_PROJECT"
+    CHILD_OF = "CHILD_OF"
+    PARENT_OF = "PARENT_OF"
+    DUPLICATE = "DUPLICATE"
+    VERSION_OF = "VERSION_OF"
+
+
 class RegistryRelationshipBase(BaseModel):
-    relationship_type: str = Field(..., min_length=1)
+    relationship_type: RelationshipType
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     evidence_json: Optional[str] = None
     relationship_source: Optional[str] = None
@@ -64,9 +76,11 @@ class RegistryRelationship(RegistryRelationshipBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    uuid: str
     from_object_id: int
     to_object_id: int
     created_at: datetime
+    updated_at: datetime
 
 
 class CaptureRequest(BaseModel):

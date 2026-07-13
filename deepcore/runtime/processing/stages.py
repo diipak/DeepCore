@@ -48,3 +48,38 @@ class ContentIndexStage:
                     })
 
         pipeline_result.objects_processed += processed_count
+
+
+class RelationshipStage:
+    """
+    Stage 2: Relationship Engine.
+    Processes deterministic relationships for newly synchronized or modified active notes.
+    """
+    @property
+    def id(self) -> str:
+        return "relationship_engine"
+
+    @property
+    def name(self) -> str:
+        return "Relationship Engine"
+
+    @property
+    def description(self) -> str:
+        return "Establishes explainable, deterministic relationships between canonical objects"
+
+    @property
+    def order(self) -> int:
+        return 200
+
+    @property
+    def enabled(self) -> bool:
+        return True
+
+    def execute(self, db: Session, sync_result: SyncResult, pipeline_result: ProcessingResult) -> None:
+        from deepcore.intelligence.relationship_engine import RelationshipEngine
+        engine = RelationshipEngine(db)
+        try:
+            processed_count = engine.process_sync_result(sync_result)
+            pipeline_result.objects_processed += processed_count
+        except Exception as e:
+            raise RuntimeError(f"Relationship Engine execution failed: {str(e)}")

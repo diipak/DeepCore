@@ -187,6 +187,37 @@ class RegistryService:
             for r in referenced_query
         ]
 
+        # Fetch relationships where current object is the source
+        import json
+        rel_query = self.db.query(
+            DBRegistryRelationship,
+            DBRegistryObject
+        ).join(
+            DBRegistryObject,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.from_object_id == obj.id
+        ).all()
+        
+        relationships = []
+        for rel, target in rel_query:
+            try:
+                evidence = json.loads(rel.evidence_json) if rel.evidence_json else {}
+            except Exception:
+                evidence = rel.evidence_json
+                
+            relationships.append({
+                "uuid": rel.uuid,
+                "target_object_uuid": target.uuid,
+                "target_object_title": target.title,
+                "target_object_type": target.object_type,
+                "relationship_type": rel.relationship_type,
+                "confidence": rel.confidence,
+                "evidence": evidence,
+                "created_at": rel.created_at,
+                "updated_at": rel.updated_at
+            })
+
         return {
             "uuid": obj.uuid,
             "type": obj.object_type,
@@ -198,7 +229,8 @@ class RegistryService:
             "created_at": obj.created_at,
             "updated_at": obj.updated_at,
             "connected_concepts": connected_concepts,
-            "referenced_objects": referenced_objects
+            "referenced_objects": referenced_objects,
+            "relationships": relationships
         }
 
 
