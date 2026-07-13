@@ -123,7 +123,7 @@ class MarkdownProvider(BaseProvider):
             "content_hash": raw_data.get("content_hash")
         }
 
-    def sync(self, registry_service: RegistryService, *args, **kwargs) -> List[Any]:
+    def sync(self, registry_service: RegistryService, *args, **kwargs):
         """Perform duplicate checking, registry updates, and sync stats counting."""
         started_at = datetime.now(timezone.utc)
         status = "success"
@@ -136,11 +136,24 @@ class MarkdownProvider(BaseProvider):
         self.updated_count = 0
         self.missing_count = 0
 
-        synced_objects = []
+        created_objects = []
+        updated_objects = []
+        existing_objects = []
+        missing_objects = []
+
         active_external_ids = [raw["relative_path"] for raw in raw_files]
 
         # 1. Detect and mark missing objects first, so rename matching works against missing status
+        from sqlalchemy import func
+        from deepcore.storage.sqlite.models import RegistryObject as DBRegistryObject
         try:
+            missing_query = registry_service.db.query(DBRegistryObject).filter(
+                DBRegistryObject.source_system == "markdown",
+                DBRegistryObject.status == "active",
+                func.json_extract(DBRegistryObject.metadata_json, '$.root_path') == self.root_path,
+                ~DBRegistryObject.external_id.in_(active_external_ids)
+            )
+            missing_objects = missing_query.all()
             self.missing_count = registry_service.mark_missing_objects("markdown", self.root_path, active_external_ids)
         except Exception as e:
             errors.append(f"Failed to mark missing objects: {e}")
@@ -164,12 +177,14 @@ class MarkdownProvider(BaseProvider):
             if existing_by_path:
                 db_obj = existing_by_path[0]
                 self.existing_count += 1
+                existing_objects.append(db_obj)
                 
                 needs_update = False
                 update_fields = {}
                 if db_obj.status == "missing":
                     update_fields["status"] = "active"
                     self.missing_count = max(0, self.missing_count - 1)
+                    missing_objects = [o for o in missing_objects if o.id != db_obj.id]
                     needs_update = True
                 if db_obj.content_hash != file_hash:
                     update_fields["content_hash"] = file_hash
@@ -179,6 +194,7 @@ class MarkdownProvider(BaseProvider):
                     try:
                         db_obj = registry_service.update_object(db_obj.id, RegistryObjectUpdate(**update_fields))
                         self.updated_count += 1
+                        updated_objects.append(db_obj)
                         # Process embedded resources
                         from deepcore.core.capture.service import CaptureService
                         capture_service = CaptureService(registry_service.db)
@@ -204,7 +220,10 @@ class MarkdownProvider(BaseProvider):
                     db_obj = registry_service.update_object(existing_by_hash.id, RegistryObjectUpdate(**update_fields))
                     self.existing_count += 1
                     self.updated_count += 1
+                    existing_objects.append(db_obj)
+                    updated_objects.append(db_obj)
                     self.missing_count = max(0, self.missing_count - 1)
+                    missing_objects = [o for o in missing_objects if o.id != db_obj.id]
                     # Process embedded resources
                     from deepcore.core.capture.service import CaptureService
                     capture_service = CaptureService(registry_service.db)
@@ -219,8 +238,8 @@ class MarkdownProvider(BaseProvider):
                 normalized = self.normalize(raw)
                 obj_create = RegistryObjectCreate(**normalized)
                 db_obj = registry_service.register_object(obj_create)
-                synced_objects.append(db_obj)
                 self.new_count += 1
+                created_objects.append(db_obj)
                 # Process embedded resources
                 from deepcore.core.capture.service import CaptureService
                 capture_service = CaptureService(registry_service.db)
@@ -251,4 +270,11 @@ class MarkdownProvider(BaseProvider):
             # Shield sync output from sync logging failures
             pass
 
-        return synced_objects
+        from deepcore.core.providers.base import SyncResult
+        return SyncResult(
+            scanned=self.scanned_count,
+            created=created_objects,
+            updated=updated_objects,
+            existing=existing_objects,
+            missing=missing_objects
+        )
