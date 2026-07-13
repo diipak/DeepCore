@@ -1,3 +1,10 @@
+---
+Category: Architecture
+Status: Approved
+Dependencies: [governance/PRODUCT_VISION.md, architecture/ARCHITECTURE.md]
+Source-of-truth: True
+---
+
 # DeepCore Intelligence Pipeline Architecture
 
 Version: v1.0  

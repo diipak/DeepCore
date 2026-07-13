@@ -1,3 +1,10 @@
+---
+Category: Architecture
+Status: Approved
+Dependencies: [architecture/ARCHITECTURE.md, architecture/EXPERIENCE_DESIGN.md]
+Source-of-truth: True
+---
+
 # DeepCore UI Architecture
 
 Version: v0.1  

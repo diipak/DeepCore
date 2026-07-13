@@ -1,3 +1,10 @@
+---
+Category: Governance
+Status: Approved
+Dependencies: [governance/PRODUCT_VISION.md]
+Source-of-truth: True
+---
+
 # DeepCore Development Roadmap
 
 Milestone Development Roadmaps for the DeepCore personal intelligence engine.

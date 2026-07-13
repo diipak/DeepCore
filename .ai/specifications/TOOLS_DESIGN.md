@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [architecture/ARCHITECTURE.md]
+Source-of-truth: True
+---
+
 # Tools Architecture Design — DeepCore Intelligence Layer
 
 Version: v0.1  

@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [architecture/ARCHITECTURE.md]
+Source-of-truth: True
+---
+
 # Descriptor Architecture Specification
 
 This document details the standardized metadata descriptor hierarchy for all executable components and services within DeepCore.

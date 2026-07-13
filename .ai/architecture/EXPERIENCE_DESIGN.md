@@ -1,3 +1,10 @@
+---
+Category: Architecture
+Status: Approved
+Dependencies: [governance/PRODUCT_VISION.md]
+Source-of-truth: True
+---
+
 # DeepCore Experience Design v0.1
 
 ## Product Philosophy

@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [specifications/SKILLS_DESIGN.md, specifications/TOOLS_DESIGN.md]
+Source-of-truth: True
+---
+
 # Planner Architecture Design — DeepCore Intelligence Layer
 
 Version: v0.1  

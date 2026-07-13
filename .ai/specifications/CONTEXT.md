@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [architecture/ARCHITECTURE.md]
+Source-of-truth: True
+---
+
 # DeepCore Context
 
 ## What is DeepCore?

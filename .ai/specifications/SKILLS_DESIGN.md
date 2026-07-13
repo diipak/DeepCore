@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [specifications/TOOLS_DESIGN.md]
+Source-of-truth: True
+---
+
 # Skills Architecture Design — DeepCore Intelligence Layer
 
 Version: v0.1  

@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [architecture/EXPERIENCE_DESIGN.md, governance/PRODUCT_VISION.md]
+Source-of-truth: True
+---
+
 # DeepCore Application Screens
 
 Version: v0.1  

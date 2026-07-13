@@ -1,3 +1,10 @@
+---
+Category: Governance
+Status: Approved
+Dependencies: [governance/PRODUCT_VISION.md]
+Source-of-truth: True
+---
+
 # DeepCore Intelligence Workspace Vision
 
 Version: v0.1  

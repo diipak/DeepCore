@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [architecture/ARCHITECTURE.md]
+Source-of-truth: True
+---
+
 # Implementation Plan - API Gateway Layer v0.1
 
 Implement Phase 5 — API Gateway Layer.

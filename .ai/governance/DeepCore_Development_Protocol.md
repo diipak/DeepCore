@@ -1,3 +1,10 @@
+---
+Category: Governance
+Status: Approved
+Dependencies: []
+Source-of-truth: True
+---
+
 # DeepCore Development Protocol
 
 Version: v1.0

@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [specifications/DESCRIPTOR_DESIGN.md, specifications/CAPABILITY_REGISTRY_DESIGN.md]
+Source-of-truth: True
+---
+
 # Capability Discovery Service Design Specification
 
 This document outlines the architecture and serialization model mappings of the DeepCore Capability Discovery Service.

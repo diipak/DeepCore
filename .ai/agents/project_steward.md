@@ -1,3 +1,10 @@
+---
+Category: Agent
+Status: Approved
+Dependencies: [governance/DeepCore_Development_Protocol.md]
+Source-of-truth: True
+---
+
 # DeepCore Agent — Project Steward
 
 Version: 0.1
@@ -26,8 +33,8 @@ You preserve them.
 Review:
 
 - README.md
-- .ai/CONTEXT.md
-- .ai/CURRENT_STATE.md
+- .ai/specifications/CONTEXT.md
+- .ai/governance/CURRENT_STATE.md
 - Relevant architecture documents
 
 Understand:
@@ -50,7 +57,7 @@ Analyze:
 
 Update:
 
-.ai/CURRENT_STATE.md
+.ai/governance/CURRENT_STATE.md
 
 with:
 
@@ -97,7 +104,7 @@ refactor(provider): simplify provider interface
 
 ## 4. Maintain AI Context
 
-Keep .ai/CONTEXT.md updated.
+Keep .ai/specifications/CONTEXT.md updated.
 
 It should explain:
 

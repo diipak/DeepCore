@@ -1,3 +1,10 @@
+---
+Category: Specification
+Status: Approved
+Dependencies: [specifications/DESCRIPTOR_DESIGN.md]
+Source-of-truth: True
+---
+
 # Capability Registry Design Specification
 
 This document details the architecture and validation invariants of the DeepCore Capability Registry subsystem.

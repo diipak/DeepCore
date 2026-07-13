@@ -1,3 +1,10 @@
+---
+Category: Governance
+Status: In Progress
+Dependencies: [governance/PRODUCT_VISION.md, governance/ROADMAP.md]
+Source-of-truth: True
+---
+
 # Current State - DeepCore Registry MVP
 
 ## Phase 1 Completion
@@ -125,7 +132,7 @@ Transform DeepCore from a CLI-first memory engine into a user-facing personal in
 
 ### Added Product Documents
 
-- `.ai/PRODUCT_VISION.md`
+- `.ai/governance/PRODUCT_VISION.md`
   - Defines the long-term vision:
     - Local-first personal intelligence layer
     - Object-centric architecture
@@ -133,7 +140,7 @@ Transform DeepCore from a CLI-first memory engine into a user-facing personal in
     - Future native application compatibility
     - Plugin/provider expansion model
 
-- `.ai/UI_ARCHITECTURE.md`
+- `.ai/architecture/UI_ARCHITECTURE.md`
   - Defines frontend engineering rules:
     - Mobile-first design
     - Component-first implementation
@@ -142,7 +149,7 @@ Transform DeepCore from a CLI-first memory engine into a user-facing personal in
     - Native app compatibility
     - Separation between intelligence engine and UI
 
-- `.ai/APP_SCREENS.md`
+- `.ai/specifications/APP_SCREENS.md`
   - Defines application experience:
     - Home
     - Memory
@@ -316,9 +323,9 @@ Implemented and validated the DeepCore Context Engine, establishing the core fra
 
 Registered the Planner, Skills, and Tools design specifications in the workspace files:
 
-- **[PLANNER_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/PLANNER_DESIGN.md)**: Establishes the philosophy, data models, public platform APIs, lifecycle engine, and mock-based validation strategy for the deterministic execution planner.
-- **[SKILLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/SKILLS_DESIGN.md)**: Establishes the philosophy, boundaries, contracts, execution lifecycle, registration framework, and recursion safety guidelines for Skills inside the DeepCore Intelligence Layer.
-- **[TOOLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/TOOLS_DESIGN.md)**: Establishes the philosophy, boundaries, taxonomy classification, contracts, safety metadata model, execution lifecycle, and registration framework for Tools inside the DeepCore Intelligence Layer.
+- **[PLANNER_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/specifications/PLANNER_DESIGN.md)**: Establishes the philosophy, data models, public platform APIs, lifecycle engine, and mock-based validation strategy for the deterministic execution planner.
+- **[SKILLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/specifications/SKILLS_DESIGN.md)**: Establishes the philosophy, boundaries, contracts, execution lifecycle, registration framework, and recursion safety guidelines for Skills inside the DeepCore Intelligence Layer.
+- **[TOOLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/specifications/TOOLS_DESIGN.md)**: Establishes the philosophy, boundaries, taxonomy classification, contracts, safety metadata model, execution lifecycle, and registration framework for Tools inside the DeepCore Intelligence Layer.
 
 
 

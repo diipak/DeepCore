@@ -1,3 +1,10 @@
+---
+Category: Governance
+Status: Approved
+Dependencies: []
+Source-of-truth: True
+---
+
 # DeepCore Product Vision
 
 Version: v0.1  

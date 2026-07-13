@@ -1,3 +1,10 @@
+---
+Category: Architecture
+Status: Approved
+Dependencies: []
+Source-of-truth: True
+---
+
 # DeepCore Architecture - Engine Foundation v0.2
 
 This document outlines the system architecture of the DeepCore platform, describing its modular layering, reserved ports, core architectural laws, and capability discovery stack.
