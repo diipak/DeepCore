@@ -26,11 +26,14 @@ def is_technical_term(word: str) -> bool:
     if not w.isalnum():
         return False
     
-    # 1. Words containing numbers (e.g. GPT4)
+    # 1. Words containing numbers (e.g. GPT4, 2FA)
     has_letter = any(c.isalpha() for c in w)
     has_digit = any(c.isdigit() for c in w)
     if has_letter and has_digit:
-        return True
+        # Strict rules: Capitalized letters + digits, or digits + uppercase letters
+        if re.match(r'^[A-Z][a-zA-Z]*\d+$', w) or re.match(r'^\d+[A-Z]+$', w):
+            return True
+        return False
         
     # 2. ALLCAPS abbreviations (length >= 3, e.g. RAG, MLX)
     if w.isupper() and len(w) >= 3:
@@ -43,6 +46,49 @@ def is_technical_term(word: str) -> bool:
             return True
             
     return False
+
+
+def is_valid_concept_candidate(term: str) -> bool:
+    """Filter out URLs, UUIDs, query params, random hashes, and invalid alphanumeric tokens."""
+    # Reject too short
+    if len(term) < 3:
+        return False
+        
+    # Reject digit-only
+    if term.isdigit():
+        return False
+
+    # Reject URLs and domain names
+    if re.search(r'https?://|www\.|github\.com|youtube\.com|youtu\.be', term, re.IGNORECASE):
+        return False
+
+    # Reject query parameters or query characters
+    if "?" in term or "=" in term or "&" in term:
+        return False
+
+    # Reject UUIDs
+    if re.match(r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$', term):
+        return False
+
+    # Reject md5/sha1/sha256 hex hashes
+    if re.match(r'^[a-fA-F0-9]{32,64}$', term):
+        return False
+
+    # Filter alphanumeric tokens containing both numbers and letters (random IDs check)
+    has_letter = any(c.isalpha() for c in term)
+    has_digit = any(c.isdigit() for c in term)
+    if has_letter and has_digit:
+        words = term.split()
+        for w in words:
+            w_clean = w.strip(".,;:!?()[]{}'\"*`_")
+            w_has_letter = any(c.isalpha() for c in w_clean)
+            w_has_digit = any(c.isdigit() for c in w_clean)
+            if w_has_letter and w_has_digit:
+                # Must start with letter and end with number (capitalized) or start with number and end with uppercase letter
+                if not (re.match(r'^[A-Z][a-zA-Z]*\d+$', w_clean) or re.match(r'^\d+[A-Z]+$', w_clean)):
+                    return False
+                    
+    return True
 
 class ConceptService:
     def __init__(self, db: Session):
@@ -88,6 +134,18 @@ class ConceptService:
             return {"concepts_created": 0, "relationships_created": 0}
 
         raw_text = content_index.raw_text
+        if raw_text:
+            # Replace URLs with spaces
+            raw_text = re.sub(r'https?://\S+', ' ', raw_text)
+            raw_text = re.sub(r'www\.\S+', ' ', raw_text)
+            # Replace UUID-like strings with spaces
+            raw_text = re.sub(r'\b[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\b', ' ', raw_text)
+            # Replace long hex hashes with spaces
+            raw_text = re.sub(r'\b[a-fA-F0-9]{32,64}\b', ' ', raw_text)
+            # Replace query string fragments (e.g., ?v=abc, &v=abc)
+            raw_text = re.sub(r'\?\S+', ' ', raw_text)
+            raw_text = re.sub(r'&\S+', ' ', raw_text)
+
         candidates = {}  # normalized_key -> {"title": original_title, "methods": set(), "count": int}
 
         # --- A. Markdown Headings ---
@@ -97,7 +155,7 @@ class ConceptService:
             if m:
                 heading = m.group(1).strip()
                 heading_clean = heading.strip("`*_-")
-                if len(heading_clean) < 3:
+                if not is_valid_concept_candidate(heading_clean):
                     continue
                 norm = heading_clean.lower().replace(" ", "").replace("-", "").replace("_", "")
                 if norm in STOP_WORDS:
@@ -109,11 +167,9 @@ class ConceptService:
         # --- B. Technical Term Patterns ---
         words = re.findall(r'\b[a-zA-Z0-9_-]+\b', raw_text)
         for w in words:
-            if is_technical_term(w):
+            if is_technical_term(w) and is_valid_concept_candidate(w):
                 norm = w.lower().replace(" ", "").replace("-", "").replace("_", "")
                 if norm in STOP_WORDS:
-                    continue
-                if len(w) < 3:
                     continue
                 if norm not in candidates:
                     candidates[norm] = {"title": w, "methods": set(), "count": 0}
@@ -124,7 +180,7 @@ class ConceptService:
         phrases = [m.group(0) for m in phrase_pattern.finditer(raw_text)]
         for p in phrases:
             p_clean = p.strip()
-            if len(p_clean) < 3:
+            if not is_valid_concept_candidate(p_clean):
                 continue
             norm = p_clean.lower().replace(" ", "").replace("-", "").replace("_", "")
             if norm in STOP_WORDS:
@@ -240,6 +296,8 @@ class ConceptService:
         if isinstance(show_ignored, str):
             show_ignored = show_ignored.lower() in ("true", "1", "yes", "t", "y")
 
+        from sqlalchemy import case
+
         # 1. Start query from concept table
         query = self.db.query(DBRegistryObject).filter(
             DBRegistryObject.object_type == "concept",
@@ -264,9 +322,15 @@ class ConceptService:
             func.count(DBRegistryRelationship.id).label("connection_count")
         )
 
+        approved_order = case(
+            (func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') == 'approved', 0),
+            else_=1
+        )
+
         results = query.group_by(
             DBRegistryObject.id
         ).order_by(
+            approved_order.asc(),
             func.count(DBRegistryRelationship.id).desc(),
             DBRegistryObject.title.asc()
         ).limit(limit).all()

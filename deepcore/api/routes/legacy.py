@@ -57,4 +57,3 @@ def capture_content(request: schemas.CaptureRequest, db: Session = Depends(get_d
         raise HTTPException(status_code=400, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-

@@ -24,6 +24,90 @@ The interface should feel like a personal assistant connected to a personal know
 
 ---
 
+# Interaction Model v0.3
+
+DeepCore does not use traditional application pages as the primary experience.
+
+DeepCore uses a persistent personal intelligence workspace.
+
+The user journey is:
+
+Capture
+→ Remember
+→ Understand
+→ Act
+
+not:
+
+Navigate
+→ Open modules
+→ Manage data
+
+
+## Primary Experience Surfaces
+
+DeepCore has three adaptive surfaces:
+
+### 1. Memory Universe
+
+Purpose:
+Navigate everything the user has collected.
+
+Contains:
+- knowledge spaces
+- source hierarchy
+- object discovery
+- extensions/providers
+
+Examples:
+Notes, videos, documents, GitHub, calendar, finance.
+
+
+### 2. Conscious Workspace
+
+Purpose:
+The main thinking and interaction surface.
+
+This is the center of DeepCore.
+
+Contains:
+- personalized home intelligence
+- greetings and continuation points
+- object explorer
+- rich markdown reading
+- artifact rendering
+- graph exploration
+- future interactive content
+
+
+### 3. Context Intelligence
+
+Purpose:
+AI reasoning layer connected to current context.
+
+Contains:
+- assistant conversation
+- object-aware actions
+- explanations
+- memory retrieval
+- tool usage
+
+
+Rules:
+
+- The center workspace always owns the main user attention.
+- Do not create separate desktop pages for Memory, Graph, or Assistant.
+- These are modes inside the same intelligence workspace.
+- Desktop expands available surfaces.
+- Mobile transitions between the same surfaces.
+
+The architecture must remain compatible with:
+- Web/PWA
+- iOS native
+- Android native
+- Desktop clients
+---
+
 # Product Principles
 
 ## 1. Mobile First

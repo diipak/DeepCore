@@ -8,6 +8,34 @@ Status: Product Blueprint
 # Purpose
 
 This document defines the core user experience of DeepCore.
+---
+
+# Workspace Interpretation v0.3
+
+Screens listed in this document are not separate application pages.
+
+They are workspace modes.
+
+DeepCore has one persistent workspace.
+
+Examples:
+
+Home = awareness mode.
+
+Memory = exploration mode.
+
+Object Detail = focus mode.
+
+Graph = relationship mode.
+
+Assistant = context intelligence mode.
+
+
+Desktop may show multiple surfaces together.
+
+Mobile shows one surface at a time.
+
+The experience and state remain identical.
 
 The goal is to translate:
 
@@ -21,13 +49,13 @@ The interface should hide complexity.
 
 # Core Navigation
 
-DeepCore has five main areas:
+DeepCore has five main areas in the Knowledge sidebar:
 
-1. Home
-2. Memory
-3. Graph
-4. Assistant
-5. More
+1. Home / Awareness (Awareness Mode)
+2. Memories (Exploration Mode)
+3. Concepts (ontology structure)
+4. Graph Explorer (Relationship Mode)
+5. Context Assistant (Collapsible/Resizable sidebar)
 
 No additional primary tabs without architectural review.
 
@@ -142,17 +170,12 @@ Examples:
 
 ---
 
-### Quick Actions
+### Search & Ask Palette
 
-Required:
-
-Capture
-
-Ask
-
-Search
-
-Create
+The Home view features an integrated search/command palette:
+- **Interactive Input:** Keeps typed query active and visible without page redirect.
+- **Inline Results:** Dynamically queries indexed objects (memories) and ontology terms (concepts) concurrently. Displays results as cards with colored type badges right below the input.
+- **Explicit Navigation:** Transitions the Conscious Workspace to detail views only upon clicking a result.
 
 ---
 

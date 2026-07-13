@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background-primary: var(--background-primary);
+  --color-surface-card: var(--surface-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-primary: var(--accent-primary);
+  --color-border-primary: var(--border-primary);
+  --color-accent-memory: var(--accent-memory);
+  --color-accent-concept: var(--accent-concept);
+  --color-accent-assistant: var(--accent-assistant);
+  --color-accent-action: var(--accent-action);
+  --color-accent-warning: var(--accent-warning);
+  --color-accent-important: var(--accent-important);
+  --color-accent-video: var(--accent-video);
+}
+
+:root {
+  --background-primary: #f8fafc; /* slate 50 */
+  --surface-card: #ffffff;
+  --text-primary: #0f172a; /* slate 900 */
+  --text-secondary: #475569; /* slate 600 */
+  --accent-primary: #6366f1; /* indigo 500 */
+  --border-primary: #e2e8f0; /* slate 200 */
+  
+  /* Semantic Pastel Accent Colors (Light Mode) */
+  --accent-memory: #3b82f6;      /* Soft blue */
+  --accent-concept: #8b5cf6;     /* Soft violet */
+  --accent-assistant: #06b6d4;   /* Soft cyan */
+  --accent-action: #10b981;      /* Soft green */
+  --accent-warning: #f59e0b;     /* Soft amber */
+  --accent-important: #f43f5e;   /* Soft rose */
+  --accent-video: #ef4444;       /* Soft red */
+}
+
+.dark {
+  --background-primary: #0f172a; /* slate 900 */
+  --surface-card: #1e293b; /* slate 800 */
+  --text-primary: #f8fafc; /* slate 50 */
+  --text-secondary: #94a3b8; /* slate 400 */
+  --accent-primary: #818cf8; /* indigo 400 */
+  --border-primary: #334155; /* slate 700 */
+  
+  /* Semantic Pastel Accent Colors (Dark Mode) */
+  --accent-memory: #93c5fd;      /* Soft blue */
+  --accent-concept: #c084fc;     /* Soft violet */
+  --accent-assistant: #67e8f9;   /* Soft cyan */
+  --accent-action: #6ee7b7;      /* Soft green */
+  --accent-warning: #fcd34d;     /* Soft amber */
+  --accent-important: #fda4af;   /* Soft rose */
+  --accent-video: #fca5a5;       /* Soft red */
+}
+
+body {
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Custom scrollbar styling for code blocks and sidebars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Ensure code blocks, tables, and pre tags contain text layout */
+pre, code, table, img {
+  max-width: 100%;
+  word-wrap: break-word;
+}

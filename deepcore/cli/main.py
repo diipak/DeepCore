@@ -487,6 +487,70 @@ def concepts_merge(source: str, target: str):
     finally:
         db.close()
 
+@concepts_app.command("clean")
+def concepts_clean():
+    """Prune and clean up garbage concepts (Placeholder)."""
+    typer.echo("Pruning and garbage concept cleanup is not yet active (Architecture Guard Placeholder).")
+
+intelligence_app = typer.Typer(help="Manage intelligence layer tasks")
+app.add_typer(intelligence_app, name="intelligence")
+
+@intelligence_app.command("rebuild")
+def intelligence_rebuild():
+    """Reprocess all existing memories to extract and link child objects."""
+    db = SessionLocal()
+    try:
+        from deepcore.storage.sqlite.models import RegistryObject as DBRegistryObject
+        from deepcore.core.capture.service import CaptureService
+        
+        capture_service = CaptureService(db)
+        
+        # Get all active notes and documents
+        db_objs = db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active",
+            DBRegistryObject.object_type.in_(["note", "document"])
+        ).all()
+        
+        typer.echo(f"Found {len(db_objs)} objects to reprocess.")
+        reprocessed = 0
+        
+        stats = {
+            "videos": 0,
+            "repositories": 0,
+            "documents": 0,
+            "relationships": 0,
+            "skipped": 0
+        }
+        
+        for obj in db_objs:
+            # We pass an empty set for processed_urls to start a clean recursion path per parent
+            capture_service.process_embedded_resources(obj, set(), stats=stats)
+            reprocessed += 1
+            if reprocessed % 5 == 0 or reprocessed == len(db_objs):
+                typer.echo(f"Reprocessed {reprocessed}/{len(db_objs)} objects...")
+                
+        typer.echo("")
+        typer.echo("🧠 Intelligence rebuild complete")
+        typer.echo("")
+        typer.echo("Processed:")
+        typer.echo(f"{reprocessed} memories")
+        typer.echo("")
+        typer.echo("Discovered:")
+        typer.echo(f"🎬 {stats['videos']} videos")
+        typer.echo(f"💻 {stats['repositories']} repositories")
+        typer.echo(f"🌐 {stats['documents']} web resources")
+        typer.echo("")
+        typer.echo("Relationships created:")
+        typer.echo(f"{stats['relationships']} references")
+        typer.echo("")
+        typer.echo("Skipped duplicates:")
+        typer.echo(f"{stats['skipped']} existing objects")
+    except Exception as e:
+        typer.echo(f"Error during rebuild: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     app()
 

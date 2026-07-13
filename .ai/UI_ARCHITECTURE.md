@@ -323,24 +323,19 @@ Required from first commit.
 No direct colors.
 
 Forbidden:
+- #ffffff
+- black
+- saturated neon primaries
 
-#ffffff
-
-black
-
-red
-
-blue
-
-Allowed:
-
-background.primary
-
-text.primary
-
-surface.card
-
-accent.primary
+Allowed Functional Semantics (Semantic Pastel System):
+- background.primary / surface.card: Neutral, dark/calm surfaces.
+- `--accent-memory`: Soft blue (Markdown notes, documents, memory lists).
+- `--accent-concept`: Soft violet (Ontology concepts, tags, relationship graphs).
+- `--accent-assistant`: Soft cyan (AI status, intelligence headers, chat context).
+- `--accent-action`: Soft green (Growth, success states, sync success, enabled actions).
+- `--accent-warning`: Soft amber (Warnings, attention states, candidate status).
+- `--accent-important`: Soft rose (Emotional/personal metadata tags).
+- `--accent-video`: Soft red (Videos, YouTube source integrations).
 
 ---
 
@@ -466,3 +461,108 @@ Not an admin dashboard.
 Not a database viewer.
 
 Not a developer tool.
+
+
+
+# Workspace Navigation v0.2
+
+DeepCore does not use fixed app pages.
+
+It uses expandable spaces.
+
+
+Navigation Example:
+
+Knowledge
+  Memories
+  Notes
+  Videos
+  Concepts
+
+Intelligence
+  Graph
+  Assistant
+
+Extensions
+  Installed extensions appear here
+
+
+Rules:
+
+- Navigation tree supports unlimited depth.
+- Extensions register themselves into navigation.
+- Shell must not hardcode future modules.
+
+
+Desktop:
+
+Memory Universe
+|
+Conscious Workspace
+|
+Context Intelligence
+
+
+## Memory Universe
+
+Left adaptive surface.
+
+Responsibilities:
+- navigation tree
+- sources
+- spaces
+- extensions
+
+Can collapse when space is limited.
+
+
+## Conscious Workspace
+
+Primary flexible surface.
+
+Responsibilities:
+- home intelligence
+- object browsing
+- object detail
+- markdown rendering
+- artifacts
+- graph exploration
+
+The explorer and artifact viewer are states of the same workspace.
+
+Do not permanently split them into separate desktop columns.
+
+
+## Context Intelligence
+
+Right adaptive surface.
+
+Responsibilities:
+- assistant
+- reasoning
+- contextual actions
+
+Rules:
+- Resizable like an IDE assistant panel:
+  - Drag handle on the left border.
+  - Sizing limits: min width 280px, default 360px, max width 600px.
+  - Width state is persisted in `localStorage` under `deepcore_assistant_width`.
+- Collapsible using the workspace-wide toggle button.
+- Receives current workspace context (selected object ID or concept name).
+- Mobile layout disables resizing, fitting full width.
+
+
+Mobile:
+
+Same architecture.
+
+Only presentation changes:
+
+Memory Universe
+→ Conscious Workspace
+→ Context Intelligence
+
+No separate mobile experience.
+
+
+

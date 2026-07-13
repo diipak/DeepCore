@@ -1,0 +1,75 @@
+from typing import List, Optional
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from deepcore.storage.sqlite.db import get_db
+from deepcore.core.objects import schemas
+from deepcore.core.registry.service import RegistryService
+
+router = APIRouter(prefix="/objects", tags=["objects"])
+
+class ConceptShort(BaseModel):
+    id: int
+    uuid: str
+    title: str
+
+class ReferencedObjectShort(BaseModel):
+    id: int
+    uuid: str
+    title: str
+    object_type: str
+    location: Optional[str] = None
+
+class ObjectDetailsResponse(BaseModel):
+    uuid: str
+    type: str
+    title: str
+    source: str
+    location: Optional[str] = None
+    status: str
+    metadata_json: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    connected_concepts: List[ConceptShort] = []
+    referenced_objects: List[ReferencedObjectShort] = []
+
+
+@router.get("", response_model=List[schemas.RegistryObject])
+def list_objects_api(
+    search: Optional[str] = None,
+    type: Optional[str] = None,
+    source: Optional[str] = None,
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    """Memory explorer API endpoint."""
+    service = RegistryService(db)
+    # RegistryService.search_objects expects a string query. We fallback to empty string if None.
+    return service.search_objects(
+        query=search or "",
+        object_type=type,
+        source_system=source,
+        limit=limit
+    )
+
+@router.get("/recent", response_model=List[schemas.RegistryObject])
+def recent_objects_api(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """Home screen recent objects section API endpoint."""
+    service = RegistryService(db)
+    return service.recent_objects(limit=limit)
+
+@router.get("/{id_or_uuid}", response_model=ObjectDetailsResponse)
+def get_object_details_api(
+    id_or_uuid: str,
+    db: Session = Depends(get_db)
+):
+    """Object detail screen API endpoint."""
+    service = RegistryService(db)
+    details = service.get_object_details(id_or_uuid)
+    if not details:
+        raise HTTPException(status_code=404, detail=f"Object '{id_or_uuid}' not found")
+    return details

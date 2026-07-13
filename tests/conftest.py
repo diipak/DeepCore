@@ -42,10 +42,15 @@ def db_session():
 def client(db_session):
     """Provides a test HTTP client with get_db dependency overridden to use the test session."""
     def override_get_db():
+        from deepcore.storage.sqlite.db import db_session_ctx
+        token = db_session_ctx.set(db_session)
         try:
             yield db_session
         finally:
-            pass
+            try:
+                db_session_ctx.reset(token)
+            except ValueError:
+                pass
             
     app.dependency_overrides[get_db] = override_get_db
     from fastapi.testclient import TestClient

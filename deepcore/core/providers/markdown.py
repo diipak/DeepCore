@@ -177,8 +177,12 @@ class MarkdownProvider(BaseProvider):
                 
                 if needs_update:
                     try:
-                        registry_service.update_object(db_obj.id, RegistryObjectUpdate(**update_fields))
+                        db_obj = registry_service.update_object(db_obj.id, RegistryObjectUpdate(**update_fields))
                         self.updated_count += 1
+                        # Process embedded resources
+                        from deepcore.core.capture.service import CaptureService
+                        capture_service = CaptureService(registry_service.db)
+                        capture_service.process_embedded_resources(db_obj, set())
                     except Exception as e:
                         errors.append(f"Failed to update note {rel_path}: {e}")
                         status = "failed"
@@ -197,10 +201,14 @@ class MarkdownProvider(BaseProvider):
                 }
                 
                 try:
-                    registry_service.update_object(existing_by_hash.id, RegistryObjectUpdate(**update_fields))
+                    db_obj = registry_service.update_object(existing_by_hash.id, RegistryObjectUpdate(**update_fields))
                     self.existing_count += 1
                     self.updated_count += 1
                     self.missing_count = max(0, self.missing_count - 1)
+                    # Process embedded resources
+                    from deepcore.core.capture.service import CaptureService
+                    capture_service = CaptureService(registry_service.db)
+                    capture_service.process_embedded_resources(db_obj, set())
                 except Exception as e:
                     errors.append(f"Failed to update moved note {rel_path}: {e}")
                     status = "failed"
@@ -213,6 +221,10 @@ class MarkdownProvider(BaseProvider):
                 db_obj = registry_service.register_object(obj_create)
                 synced_objects.append(db_obj)
                 self.new_count += 1
+                # Process embedded resources
+                from deepcore.core.capture.service import CaptureService
+                capture_service = CaptureService(registry_service.db)
+                capture_service.process_embedded_resources(db_obj, set())
             except Exception as e:
                 errors.append(f"Failed to register note {rel_path}: {e}")
                 status = "failed"

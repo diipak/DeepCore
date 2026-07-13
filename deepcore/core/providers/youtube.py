@@ -126,8 +126,12 @@ class YouTubeProvider(BaseProvider):
         title = metadata.get("title") or f"YouTube Video {video_id}"
         
         metadata_payload = {
+            "source_url": url,
+            "video_id": video_id,
+            "title": title,
             "channel": metadata.get("channel"),
             "thumbnail": metadata.get("thumbnail"),
+            "transcript_placeholder": "Transcript sync pending...",
             "provider": "youtube",
             "captured_at": datetime.now(timezone.utc).isoformat()
         }

@@ -150,6 +150,43 @@ class RegistryService:
         obj = self.get_object(id_or_uuid)
         if not obj:
             return None
+
+        # Fetch connected concepts
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        
+        concepts_query = self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.from_object_id == obj.id,
+            DBRegistryRelationship.relationship_type == "mentions",
+            DBRegistryObject.object_type == "concept"
+        ).all()
+        
+        connected_concepts = [
+            {"id": c.id, "uuid": c.uuid, "title": c.title}
+            for c in concepts_query
+        ]
+
+        referenced_query = self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.from_object_id == obj.id,
+            DBRegistryRelationship.relationship_type == "references"
+        ).all()
+
+        referenced_objects = [
+            {
+                "id": r.id,
+                "uuid": r.uuid,
+                "title": r.title,
+                "object_type": r.object_type,
+                "location": r.location
+            }
+            for r in referenced_query
+        ]
+
         return {
             "uuid": obj.uuid,
             "type": obj.object_type,
@@ -159,8 +196,11 @@ class RegistryService:
             "status": obj.status,
             "metadata_json": obj.metadata_json,
             "created_at": obj.created_at,
-            "updated_at": obj.updated_at
+            "updated_at": obj.updated_at,
+            "connected_concepts": connected_concepts,
+            "referenced_objects": referenced_objects
         }
+
 
     def recent_objects(self, limit: int = 10) -> List[DBRegistryObject]:
         """Return newest active objects ordered by created_at descending."""
@@ -169,4 +209,149 @@ class RegistryService:
         ).order_by(
             DBRegistryObject.created_at.desc()
         ).limit(limit).all()
+
+    def recent_memories(self, limit: int = 10) -> List[DBRegistryObject]:
+        """Return newest active human-created knowledge sources ordered by created_at descending."""
+        return self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active",
+            DBRegistryObject.object_type.in_(["note", "video", "document"])
+        ).order_by(
+            DBRegistryObject.created_at.desc()
+        ).limit(limit).all()
+
+    def get_dashboard_counts(self) -> dict:
+        """Return counts for the dashboard: memory_count, concept_count, approved_concepts, relationship_count."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        
+        memory_count = self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active",
+            DBRegistryObject.object_type.in_(["note", "video", "document"])
+        ).count()
+        
+        concept_count = self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.object_type == "concept",
+            DBRegistryObject.status != "merged"
+        ).count()
+        
+        approved_concepts = self.db.query(DBRegistryObject).filter(
+            DBRegistryObject.object_type == "concept",
+            DBRegistryObject.status != "merged",
+            func.json_extract(DBRegistryObject.metadata_json, '$.concept_status') == "approved"
+        ).count()
+        
+        relationship_count = self.db.query(DBRegistryRelationship).count()
+        
+        return {
+            "memory_count": memory_count,
+            "concept_count": concept_count,
+            "approved_concepts": approved_concepts,
+            "relationship_count": relationship_count
+        }
+
+    def get_recently_connected(self, limit: int = 5) -> List[dict]:
+        """Return parent memory objects with their active connected child objects counts."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        
+        parents_query = self.db.query(
+            DBRegistryObject
+        ).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.from_object_id
+        ).filter(
+            DBRegistryRelationship.relationship_type == "references",
+            DBRegistryObject.status == "active"
+        ).group_by(
+            DBRegistryObject.id
+        ).order_by(
+            DBRegistryObject.updated_at.desc()
+        ).limit(limit).all()
+
+        recently_connected = []
+        for parent in parents_query:
+            children = self.db.query(DBRegistryObject).join(
+                DBRegistryRelationship,
+                DBRegistryObject.id == DBRegistryRelationship.to_object_id
+            ).filter(
+                DBRegistryRelationship.from_object_id == parent.id,
+                DBRegistryRelationship.relationship_type == "references",
+                DBRegistryObject.status == "active"
+            ).all()
+            
+            total_count = len(children)
+            repo_count = sum(1 for c in children if c.object_type == "repository")
+            video_count = sum(1 for c in children if c.object_type == "video")
+            doc_count = sum(1 for c in children if c.object_type == "document")
+            
+            recently_connected.append({
+                "uuid": parent.uuid,
+                "title": parent.title,
+                "object_type": parent.object_type,
+                "total_connected": total_count,
+                "repo_connected": repo_count,
+                "video_connected": video_count,
+                "doc_connected": doc_count
+            })
+            
+        return recently_connected
+
+    def get_connected_concepts(self, object_id: int) -> List[DBRegistryObject]:
+        """Retrieve active concepts mentioned by the given object ID."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        return self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.from_object_id == object_id,
+            DBRegistryRelationship.relationship_type == "mentions",
+            DBRegistryObject.object_type == "concept",
+            DBRegistryObject.status == "active"
+        ).all()
+
+    def get_referenced_memories(self, object_id: int) -> List[DBRegistryObject]:
+        """Retrieve active memories referenced by the given object ID."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        return self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.to_object_id
+        ).filter(
+            DBRegistryRelationship.from_object_id == object_id,
+            DBRegistryRelationship.relationship_type == "references",
+            DBRegistryObject.status == "active"
+        ).all()
+
+    def get_objects_mentioning_concepts(self, concept_ids: List[int]) -> List[DBRegistryObject]:
+        """Retrieve active objects that mention any of the specified concept IDs."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        if not concept_ids:
+            return []
+        return self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.from_object_id
+        ).filter(
+            DBRegistryRelationship.to_object_id.in_(concept_ids),
+            DBRegistryRelationship.relationship_type == "mentions",
+            DBRegistryObject.status == "active"
+        ).all()
+
+    def get_objects_referencing_objects(self, object_ids: List[int]) -> List[DBRegistryObject]:
+        """Retrieve active objects that reference any of the specified object IDs."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        if not object_ids:
+            return []
+        return self.db.query(DBRegistryObject).join(
+            DBRegistryRelationship,
+            DBRegistryObject.id == DBRegistryRelationship.from_object_id
+        ).filter(
+            DBRegistryRelationship.to_object_id.in_(object_ids),
+            DBRegistryRelationship.relationship_type == "references",
+            DBRegistryObject.status == "active"
+        ).all()
+
+    def get_concept_connection_count(self, concept_id: int) -> int:
+        """Retrieve the total connection count for a concept."""
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        return self.db.query(DBRegistryRelationship).filter(
+            DBRegistryRelationship.to_object_id == concept_id,
+            DBRegistryRelationship.relationship_type == "mentions"
+        ).count()
 
