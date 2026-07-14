@@ -76,6 +76,31 @@ class ContentIndex(Base):
     index_version = Column(String, default="content_v0.1", nullable=False)
 
 
+class ObjectActivityLog(Base):
+    __tablename__ = "object_activity_log"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False, index=True)
+    action = Column(String, nullable=False)  # "created" or "updated"
+    timestamp = Column(DateTime, default=get_utc_now, nullable=False)
+
+
+class RegistrySignal(Base):
+    __tablename__ = "registry_signals"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String, unique=True, index=True, default=generate_uuid, nullable=False)
+    signal_type = Column(String, nullable=False, index=True)
+    target_object_id = Column(Integer, ForeignKey("registry_objects.id", ondelete="CASCADE"), nullable=False)
+    relationship_id = Column(Integer, ForeignKey("registry_relationships.id", ondelete="SET NULL"), nullable=True)
+    value = Column(String, nullable=True)
+    confidence = Column(Float, nullable=False, default=1.0)
+    generated_by = Column(String, nullable=False, default="temporal_signal_engine")
+    evidence_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
+    updated_at = Column(DateTime, default=get_utc_now, onupdate=get_utc_now, nullable=False)
+
+
 def run_migrations(engine) -> None:
     """Run database table initialization and self-healing schema updates."""
     # 1. Ensure tables are created first

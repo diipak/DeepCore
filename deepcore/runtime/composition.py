@@ -27,7 +27,7 @@ from deepcore.runtime.planner.runtime import PlannerRuntime
 from deepcore.runtime.conversation.runtime import ConversationRuntime
 from deepcore.runtime.ingestion.runtime import IngestionRuntime
 from deepcore.runtime.processing.runtime import ProcessingRuntime
-from deepcore.runtime.processing.stages import ContentIndexStage, RelationshipStage
+from deepcore.runtime.processing.stages import ContentIndexStage, RelationshipStage, SignalStage
 from deepcore.core.providers.markdown import MarkdownProvider
 from deepcore.core.registry.service import RegistryService
 
@@ -89,6 +89,7 @@ class CompositionRoot:
         processing_runtime = ProcessingRuntime()
         processing_runtime.register_stage(ContentIndexStage())
         processing_runtime.register_stage(RelationshipStage())
+        processing_runtime.register_stage(SignalStage())
 
         ingestion_runtime = IngestionRuntime(processing_runtime)
         ingestion_runtime.register_provider("markdown", MarkdownProvider)

@@ -131,3 +131,37 @@ class ContentIndex(ContentIndexBase):
     uuid: str
     indexed_at: datetime
 
+
+class SignalType(str, Enum):
+    RECENT_ACTIVITY = "RECENT_ACTIVITY"
+    FREQUENT_ACTIVITY = "FREQUENT_ACTIVITY"
+    DORMANT = "DORMANT"
+    HIGH_REFERENCE_COUNT = "HIGH_REFERENCE_COUNT"
+    ORPHAN_NOTE = "ORPHAN_NOTE"
+    BROKEN_REFERENCE = "BROKEN_REFERENCE"
+
+
+class RegistrySignalBase(BaseModel):
+    signal_type: SignalType
+    value: Optional[str] = None
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    generated_by: str = "temporal_signal_engine"
+    evidence_json: Optional[str] = None
+
+
+class RegistrySignalCreate(RegistrySignalBase):
+    target_object_id: int
+    relationship_id: Optional[int] = None
+
+
+class RegistrySignal(RegistrySignalBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    uuid: str
+    target_object_id: int
+    relationship_id: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+
+

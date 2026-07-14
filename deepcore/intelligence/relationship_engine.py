@@ -22,7 +22,7 @@ class RelationshipEngine:
     def __init__(self, db: Session):
         self.db = db
 
-    def process_sync_result(self, sync_result: SyncResult) -> int:
+    def process_sync_result(self, sync_result: SyncResult, pipeline_result: Optional[Any] = None) -> int:
         """
         Incrementally process relationships for objects affected by the sync.
         Cleans up stale relationships for modified/missing/archived objects.
@@ -33,7 +33,7 @@ class RelationshipEngine:
         processed_count = 0
         for obj in affected_objects:
             if obj.object_type == "note":
-                self.evaluate_object(obj)
+                self.evaluate_object(obj, pipeline_result)
                 processed_count += 1
                 
         # Purge relationships for deleted/missing/archived objects
@@ -58,7 +58,7 @@ class RelationshipEngine:
 
         return processed_count
 
-    def evaluate_object(self, obj: DBRegistryObject) -> None:
+    def evaluate_object(self, obj: DBRegistryObject, pipeline_result: Optional[Any] = None) -> None:
         """
         Evaluate a single object against all other active objects in the registry.
         Removes pre-existing relations for this object and recreates current ones.
@@ -256,6 +256,20 @@ class RelationshipEngine:
                     created_triples.add(triple_2)
 
         self.db.commit()
+
+        # Identify unresolved links for broken reference detection in Signal Engine
+        if pipeline_result is not None:
+            resolved_link_targets = set()
+            for link in props["links"]:
+                link_lower = link.lower()
+                for other in other_objects:
+                    other_title_lower = other.title.lower()
+                    other_base = os.path.splitext(os.path.basename(other.external_id))[0].lower() if other.external_id else ""
+                    if link_lower == other_title_lower or link_lower == other_base:
+                        resolved_link_targets.add(link)
+                        break
+            unresolved_links = props["links"] - resolved_link_targets
+            pipeline_result.context[f"unresolved_links:{obj.id}"] = list(unresolved_links)
 
     def _get_raw_text(self, obj: DBRegistryObject) -> str:
         """Fetch raw content from canonical index if available, otherwise read location."""

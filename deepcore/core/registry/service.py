@@ -151,8 +151,7 @@ class RegistryService:
         if not obj:
             return None
 
-        # Fetch connected concepts
-        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship
+        from deepcore.storage.sqlite.models import RegistryRelationship as DBRegistryRelationship, RegistrySignal as DBRegistrySignal
         
         concepts_query = self.db.query(DBRegistryObject).join(
             DBRegistryRelationship,
@@ -218,6 +217,29 @@ class RegistryService:
                 "updated_at": rel.updated_at
             })
 
+        # Fetch signals targeting this object
+        signals_query = self.db.query(DBRegistrySignal).filter(
+            DBRegistrySignal.target_object_id == obj.id
+        ).all()
+        
+        signals = []
+        for sig in signals_query:
+            try:
+                evidence = json.loads(sig.evidence_json) if sig.evidence_json else {}
+            except Exception:
+                evidence = sig.evidence_json
+                
+            signals.append({
+                "uuid": sig.uuid,
+                "signal_type": sig.signal_type,
+                "value": sig.value,
+                "confidence": sig.confidence,
+                "generated_by": sig.generated_by,
+                "evidence": evidence,
+                "created_at": sig.created_at,
+                "updated_at": sig.updated_at
+            })
+
         return {
             "uuid": obj.uuid,
             "type": obj.object_type,
@@ -230,7 +252,8 @@ class RegistryService:
             "updated_at": obj.updated_at,
             "connected_concepts": connected_concepts,
             "referenced_objects": referenced_objects,
-            "relationships": relationships
+            "relationships": relationships,
+            "signals": signals
         }
 
 

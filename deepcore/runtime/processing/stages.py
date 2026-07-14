@@ -79,7 +79,43 @@ class RelationshipStage:
         from deepcore.intelligence.relationship_engine import RelationshipEngine
         engine = RelationshipEngine(db)
         try:
-            processed_count = engine.process_sync_result(sync_result)
+            processed_count = engine.process_sync_result(sync_result, pipeline_result)
             pipeline_result.objects_processed += processed_count
         except Exception as e:
             raise RuntimeError(f"Relationship Engine execution failed: {str(e)}")
+
+
+class SignalStage:
+    """
+    Stage 3: Temporal Signal Engine.
+    Processes deterministic signals for newly synchronized or modified active notes.
+    """
+    @property
+    def id(self) -> str:
+        return "temporal_signal_engine"
+
+    @property
+    def name(self) -> str:
+        return "Temporal Signal Engine"
+
+    @property
+    def description(self) -> str:
+        return "Derives deterministic temporal signals from canonical objects, relationships, and sync history"
+
+    @property
+    def order(self) -> int:
+        return 300
+
+    @property
+    def enabled(self) -> bool:
+        return True
+
+    def execute(self, db: Session, sync_result: SyncResult, pipeline_result: ProcessingResult) -> None:
+        from deepcore.intelligence.signal_engine import SignalEngine
+        engine = SignalEngine(db)
+        try:
+            processed_count = engine.process_sync_result(sync_result, pipeline_result)
+            pipeline_result.objects_processed += processed_count
+        except Exception as e:
+            raise RuntimeError(f"Temporal Signal Engine execution failed: {str(e)}")
+

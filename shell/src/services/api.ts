@@ -95,6 +95,17 @@ export interface RelationshipDetailResponse {
   updated_at: string;
 }
 
+export interface SignalDetailResponse {
+  uuid: string;
+  signal_type: string;
+  value?: string;
+  confidence: number;
+  generated_by: string;
+  evidence?: any;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ObjectDetailsResponse {
   uuid: string;
   type: string;
@@ -108,6 +119,7 @@ export interface ObjectDetailsResponse {
   connected_concepts: ConceptShort[];
   referenced_objects?: ReferencedObjectShort[];
   relationships?: RelationshipDetailResponse[];
+  signals?: SignalDetailResponse[];
 }
 
 export interface ConceptDetailResponse {

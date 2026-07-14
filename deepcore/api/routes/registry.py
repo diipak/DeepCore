@@ -32,6 +32,16 @@ class RelationshipDetailResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class SignalDetailResponse(BaseModel):
+    uuid: str
+    signal_type: str
+    value: Optional[str] = None
+    confidence: float
+    generated_by: str
+    evidence: Optional[Any] = None
+    created_at: datetime
+    updated_at: datetime
+
 class ObjectDetailsResponse(BaseModel):
     uuid: str
     type: str
@@ -45,6 +55,7 @@ class ObjectDetailsResponse(BaseModel):
     connected_concepts: List[ConceptShort] = []
     referenced_objects: List[ReferencedObjectShort] = []
     relationships: List[RelationshipDetailResponse] = []
+    signals: List[SignalDetailResponse] = []
 
 
 @router.get("", response_model=List[schemas.RegistryObject])

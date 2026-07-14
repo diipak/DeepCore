@@ -14,6 +14,7 @@ class ProcessingResult:
         self.objects_processed: int = 0
         self.failures: List[Dict[str, Any]] = []    # {"stage_id": str, "error": str}
         self.warnings: List[Dict[str, Any]] = []
+        self.context: Dict[str, Any] = {}
 
 
 class ProcessingStage(Protocol):

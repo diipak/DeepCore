@@ -298,6 +298,69 @@ export const MemoryDetail: React.FC = () => {
           )}
         </div>
 
+        {/* Temporal Signals */}
+        <div className="space-y-3 pt-6 border-t border-border-primary/60">
+          <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+            Temporal Signals
+          </h4>
+          {details.signals && details.signals.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-border-primary/45 text-text-secondary uppercase tracking-wider font-bold">
+                    <th className="py-2 pb-3">Signal Name</th>
+                    <th className="py-2 pb-3">Explanation</th>
+                    <th className="py-2 pb-3">Evidence</th>
+                    <th className="py-2 pb-3">Detected At</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-primary/20 text-text-primary">
+                  {details.signals.map((sig) => {
+                    let typeBadgeClass = "bg-background-primary/50 text-text-secondary";
+                    if (sig.signal_type === "RECENT_ACTIVITY" || sig.signal_type === "FREQUENT_ACTIVITY") {
+                      typeBadgeClass = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    } else if (sig.signal_type === "DORMANT") {
+                      typeBadgeClass = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                    } else if (sig.signal_type === "HIGH_REFERENCE_COUNT") {
+                      typeBadgeClass = "bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold";
+                    } else if (sig.signal_type === "ORPHAN_NOTE" || sig.signal_type === "BROKEN_REFERENCE") {
+                      typeBadgeClass = "bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold";
+                    }
+
+                    const evidenceDetail = sig.evidence?.detail || JSON.stringify(sig.evidence);
+                    const formattedDate = new Date(sig.created_at).toLocaleString();
+
+                    return (
+                      <tr key={sig.uuid} className="hover:bg-background-primary/20 transition-colors">
+                        <td className="py-3 pr-3 font-semibold">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${typeBadgeClass}`}>
+                            {sig.signal_type}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-3">
+                          {sig.value || "N/A"}
+                        </td>
+                        <td className="py-3 text-text-secondary italic max-w-xs truncate pr-3" title={evidenceDetail}>
+                          {evidenceDetail}
+                        </td>
+                        <td className="py-3 text-text-secondary font-mono text-[10px] pr-3">
+                          {formattedDate}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl border border-dashed border-border-primary text-center bg-background-primary/30">
+              <p className="text-xs text-text-secondary font-medium">
+                No temporal signals detected yet
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Connected Concepts */}
         <div className="space-y-3 pt-6 border-t border-border-primary/60">
           <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
