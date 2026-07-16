@@ -81,12 +81,25 @@ Milestone Development Roadmaps for the DeepCore personal intelligence engine.
 - Created stateless composition layer mapping internal descriptors to `CapabilitySummary` and `CapabilityDetail`.
 - Compiles `CapabilityCatalog` dynamically grouped by category.
 
+### Phase 14: Capability Discovery HTTP API
+- Integrated dynamic capabilities lookup and dynamic catalog grouping endpoints (`GET /api/capabilities`).
+- Standardized gateway mapping to client-safe summaries and category listings.
+
+### Capability 03: Deterministic Relationship Engine
+- Implemented relationship rules (references, folder, source, tags, duplicate, version) in ingestion pipeline.
+- Added symmetrical complements, provenance tracking, and structured evidence.
+
+### Phase 15: Experience Architecture Specification
+- Created `docs/00_Foundation/experience_architecture.md` defining cognitive commitments, invariants, and conceptual workflow mappings.
+
 ---
 
-## Next Milestone: Phase 14 — Capability Discovery HTTP API
+## Next Milestone: Phase 16 — UI Alignment with Experience Architecture
 
-Introduce the HTTP API endpoints in the FastAPI Gateway allowing client interfaces to discover available capabilities dynamically.
+Align the DeepCore React/TypeScript frontend workspace with the newly defined Experience Architecture Specification.
 
 ### Core Goals
-- **API Integration**: Create `/api/capabilities` routes.
-- **Dynamic Frontend Integration**: Enable clients to query and filter available tools, skills, prompts, and models directly from the capability discovery service.
+- **Workspace Navigation Refactoring**: Transition sidebar elements from DB-centric terms ("Graph", "Memories") to dynamic proximity and timeline-driven navigation.
+- **Home Experience Alignment**: Refactor the Home screen to serve as a calm awareness center highlighting focus artifacts and system observations.
+- **Explanation/Evidence Display**: Integrate evidence and provenance disclosures contextually when exploring relationships and signals.
+
