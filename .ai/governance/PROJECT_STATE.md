@@ -606,3 +606,23 @@ Defined the foundational Product Experience Architecture governing all future us
 ### Validation
 
 - Verified specification document creation and alignment with high-level product goals.
+
+---
+
+## Phase 16 Completion — Information Architecture Specification
+
+Defined the foundational Product Information Architecture governing how attention, information, and understanding are structured and prioritized across the application:
+
+### Capabilities
+
+- **Information Architecture Specification**: Formulated the specification document [information_architecture.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/docs/00_Foundation/information_architecture.md) at the product root foundation layer.
+- **Attention Layering Model**: Developed a five-stage concentric attention model (Immediate Focus ➔ Current Focus ➔ Supporting Context ➔ Background Awareness ➔ Dormant Knowledge) to control visual and mental bandwidth.
+- **Deterministic Information Priority Rules**: Established clear, system-wide rules for resolving attention conflicts between user intent, focus context, emergent connections, background signals, and system metadata.
+- **Experience Spaces Mapping**: Conceptualized DeepCore into four core cognitive spaces (Awareness, Knowledge, Understanding, Administration) mapping current views (Home, Library, Themes, Platform) onto them to separate cognitive workspaces from administrative systems.
+- **Cognitive Information Hierarchy**: Structured information into logical human-centric cognitive layers (Attention, Understanding, Evidence, Metadata, Implementation).
+- **Context Lifetimes Engine**: Formulated distinct rules for Active context (from trusted attention signals), Transient context (search, session-only), Persistent context (user-pinned projects, overrides), and Dormant context (older unreferenced material).
+- **Purpose-driven Navigation**: Defined navigation entirely around four user purposes: Navigating to what they are doing, what they know, what they are exploring, and how the platform works.
+
+### Validation
+
+- Verified specification document creation and alignment with the experience invariants.

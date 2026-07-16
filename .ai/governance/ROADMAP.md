@@ -92,14 +92,18 @@ Milestone Development Roadmaps for the DeepCore personal intelligence engine.
 ### Phase 15: Experience Architecture Specification
 - Created `docs/00_Foundation/experience_architecture.md` defining cognitive commitments, invariants, and conceptual workflow mappings.
 
+### Phase 16: Information Architecture Specification
+- Created `docs/00_Foundation/information_architecture.md` defining the attention layers, priority rules, experience spaces, and context lifetimes.
+
 ---
 
-## Next Milestone: Phase 16 — UI Alignment with Experience Architecture
+## Next Milestone: Phase 17 — UI Alignment with Experience & Information Architecture
 
-Align the DeepCore React/TypeScript frontend workspace with the newly defined Experience Architecture Specification.
+Align the DeepCore React/TypeScript frontend workspace with the newly defined Experience and Information Architecture Specifications.
 
 ### Core Goals
-- **Workspace Navigation Refactoring**: Transition sidebar elements from DB-centric terms ("Graph", "Memories") to dynamic proximity and timeline-driven navigation.
-- **Home Experience Alignment**: Refactor the Home screen to serve as a calm awareness center highlighting focus artifacts and system observations.
-- **Explanation/Evidence Display**: Integrate evidence and provenance disclosures contextually when exploring relationships and signals.
+- **Cognitive Space Separation**: Map the user interface into distinct spaces (Awareness, Knowledge, Understanding, Administration) and enforce strict Platform Isolation for background systems.
+- **Attention Layering**: Adjust layouts to respect the 5 layers of attention, keeping focus clean and observations secondary.
+- **Workspace Navigation Refactoring**: Transition sidebar elements from DB-centric terms to dynamic, purpose-driven navigation.
+- **Context Preservation**: Align the frontend state to preserve active context, transient searches, and dormant states.
 
