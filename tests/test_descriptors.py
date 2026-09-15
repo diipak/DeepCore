@@ -12,7 +12,6 @@ from deepcore.runtime.descriptors import (
 )
 from deepcore.runtime.tools.base import ToolDescriptor, BaseTool, ToolRequest, ToolResult, ToolDiagnostics, ToolStatus
 from deepcore.runtime.skills.base import SkillDescriptor, BaseSkill, SkillRequest, SkillResult, SkillDiagnostics, SkillStatus
-from deepcore.runtime.conversation.base import ConversationDescriptor, ConversationMode
 
 
 # ==========================================
@@ -58,10 +57,10 @@ def test_descriptor_inheritance():
     # Verify that ToolDescriptor and SkillDescriptor inherit from BaseDescriptor
     assert issubclass(ToolDescriptor, BaseDescriptor)
     assert issubclass(SkillDescriptor, BaseDescriptor)
-    assert issubclass(ConversationDescriptor, BaseDescriptor)
     assert issubclass(ProviderDescriptor, BaseDescriptor)
     assert issubclass(PromptDescriptor, BaseDescriptor)
     assert issubclass(ModelDescriptor, BaseDescriptor)
+
 
 
 def test_descriptor_protocol_compliance():

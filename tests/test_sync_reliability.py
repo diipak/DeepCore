@@ -152,12 +152,28 @@ def test_sync_history_run_recording(tmp_path, db_session):
     assert run.objects_missing == 0
     assert run.status == "success"
 
-def test_cli_sync_history_command(tmp_path, cli_runner):
+def test_cli_sync_history_command(db_session, tmp_path, cli_runner):
     """Verify that deepcore sync history prints the recorded runs list."""
+    from deepcore.storage.sqlite.models import KnowledgeSource as DBKnowledgeSource
+    import json
+    
     # Run sync CLI command to create history entry
     root = tmp_path / "Notes"
     root.mkdir()
     (root / "note.md").write_text("Content")
+
+    # Pre-create KnowledgeSource
+    source = DBKnowledgeSource(
+        workspace_id=1,
+        provider_id="filesystem",
+        kind="filesystem",
+        name="Test Notes",
+        location=str(root),
+        config_json=json.dumps({"path": str(root)}),
+        status="Configured"
+    )
+    db_session.add(source)
+    db_session.commit()
     
     cli_runner.invoke(app, ["sync", "markdown", str(root)])
     
@@ -165,7 +181,7 @@ def test_cli_sync_history_command(tmp_path, cli_runner):
     result = cli_runner.invoke(app, ["sync", "history"])
     assert result.exit_code == 0
     assert "DATE | PROVIDER | SCANNED | NEW | STATUS" in result.stdout
-    assert "markdown" in result.stdout
+    assert "filesystem" in result.stdout
     assert "success" in result.stdout
 
 

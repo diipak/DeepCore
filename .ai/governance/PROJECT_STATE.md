@@ -49,7 +49,7 @@ DeepCore Recall Layer v0.1 completed.
 
 ### Validation
 
-- Unit and CLI integration tests in [test_recall.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_recall.py) and [test_cli.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_cli.py).
+- Unit and CLI integration tests in [test_recall.py](./tests/test_recall.py) and [test_cli.py](./tests/test_cli.py).
 
 ---
 
@@ -66,8 +66,8 @@ Phase 3 Content Index started. DeepCore can now inspect contents of memories.
 
 ### Validation
 
-- Migration safety tests in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) confirming existing databases upgrade safely without registry data loss.
-- Comprehensive test suite in [test_content_index.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_content_index.py) covering indexing, deduplication, modified file re-indexing, missing file resilience, and search query precision.
+- Migration safety tests in [test_content_index.py](./tests/test_content_index.py) confirming existing databases upgrade safely without registry data loss.
+- Comprehensive test suite in [test_content_index.py](./tests/test_content_index.py) covering indexing, deduplication, modified file re-indexing, missing file resilience, and search query precision.
 - Real user data validated:
   - Indexed 38 objects, successfully creating 37 content indexes and skipping 1 unmodified note.
   - Verified case-insensitive content search matches on terms like "ollama" from actual synced markdown notes and YouTube transcripts.
@@ -94,8 +94,8 @@ Phase 4 Concept Extraction and Governance completed. DeepCore can now build firs
 ### Validation
  
 - Self-healing database migration safety tests confirming database upgrades preserve existing tables and contents.
-- Robust test suite in [test_concepts.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concepts.py) verifying heading, technical term, repeated phrase extraction, duplicate resolution, active status limits, and CLI commands.
-- Governance test suite in [test_concept_governance.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_concept_governance.py) verifying type whitelist validation, ignore/approve/merge transitions, self-healing metadata migration on read, duplicate relationship merging, and listing filters.
+- Robust test suite in [test_concepts.py](./tests/test_concepts.py) verifying heading, technical term, repeated phrase extraction, duplicate resolution, active status limits, and CLI commands.
+- Governance test suite in [test_concept_governance.py](./tests/test_concept_governance.py) verifying type whitelist validation, ignore/approve/merge transitions, self-healing metadata migration on read, duplicate relationship merging, and listing filters.
 
 ---
 
@@ -326,9 +326,9 @@ Implemented and validated the DeepCore Context Engine, establishing the core fra
 
 Registered the Planner, Skills, and Tools design specifications in the workspace files:
 
-- **[PLANNER_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/design/PLANNER_DESIGN.md)**: Establishes the philosophy, data models, public platform APIs, lifecycle engine, and mock-based validation strategy for the deterministic execution planner.
-- **[SKILLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/design/SKILLS_DESIGN.md)**: Establishes the philosophy, boundaries, contracts, execution lifecycle, registration framework, and recursion safety guidelines for Skills inside the DeepCore Intelligence Layer.
-- **[TOOLS_DESIGN.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/design/TOOLS_DESIGN.md)**: Establishes the philosophy, boundaries, taxonomy classification, contracts, safety metadata model, execution lifecycle, and registration framework for Tools inside the DeepCore Intelligence Layer.
+- **[PLANNER_DESIGN.md](./.ai/design/PLANNER_DESIGN.md)**: Establishes the philosophy, data models, public platform APIs, lifecycle engine, and mock-based validation strategy for the deterministic execution planner.
+- **[SKILLS_DESIGN.md](./.ai/design/SKILLS_DESIGN.md)**: Establishes the philosophy, boundaries, contracts, execution lifecycle, registration framework, and recursion safety guidelines for Skills inside the DeepCore Intelligence Layer.
+- **[TOOLS_DESIGN.md](./.ai/design/TOOLS_DESIGN.md)**: Establishes the philosophy, boundaries, taxonomy classification, contracts, safety metadata model, execution lifecycle, and registration framework for Tools inside the DeepCore Intelligence Layer.
 
 
 
@@ -374,7 +374,7 @@ Implemented and validated the deterministic Tool Runtime as the first executable
 
 ### Validation
 
-- Clean execution passing all 8 tests in [test_tool_runtime.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_tool_runtime.py) verifying registration, lookup, validation, timeout enforcement, exception handling, and database integration.
+- Clean execution passing all 8 tests in [test_tool_runtime.py](./tests/test_tool_runtime.py) verifying registration, lookup, validation, timeout enforcement, exception handling, and database integration.
 - Standardized whole test suite integration with 82/82 tests passing.
 
 ---
@@ -393,7 +393,7 @@ Implemented and validated the deterministic Skill Runtime layer coordinating Too
 
 ### Validation
 
-- Clean execution passing all 5 tests in [test_skill_runtime.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_skill_runtime.py) verifying registration, validation, nested tool invocation, call stack tracing, circular dependency detection, and max depth rejection.
+- Clean execution passing all 5 tests in [test_skill_runtime.py](./tests/test_skill_runtime.py) verifying registration, validation, nested tool invocation, call stack tracing, circular dependency detection, and max depth rejection.
 - Unified project-wide validation with 87/87 tests passing cleanly.
 
 ---
@@ -411,7 +411,7 @@ Implemented and validated the deterministic Execution Runtime acting as the univ
 
 ### Validation
 
-- Clean execution passing all 5 tests in [test_execution_runtime.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_execution_runtime.py) verifying registry lookup, direct custom `Executable` routing, `SkillRuntime` routing, data schema mapping, and diagnostics.
+- Clean execution passing all 5 tests in [test_execution_runtime.py](./tests/test_execution_runtime.py) verifying registry lookup, direct custom `Executable` routing, `SkillRuntime` routing, data schema mapping, and diagnostics.
 - Full integration verification with 87/87 tests passing.
 
 ---
@@ -434,7 +434,7 @@ Implemented and validated the deterministic Planner Runtime coordinating and exe
 
 ### Validation
 
-- Clean execution passing all 10 tests in [test_planner_runtime.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_planner_runtime.py) validating variable normalization, condition evaluation, scheduling order, retry enforcement, plan failure handling, and cancellation routing.
+- Clean execution passing all 10 tests in [test_planner_runtime.py](./tests/test_planner_runtime.py) validating variable normalization, condition evaluation, scheduling order, retry enforcement, plan failure handling, and cancellation routing.
 - Complete integration verification with 97/97 tests passing cleanly.
 
 ---
@@ -456,7 +456,7 @@ Validated the complete deterministic execution kernel through end-to-end integra
 
 ### Validation
 
-- Clean execution passing all 6 tests in [test_kernel_integration.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_kernel_integration.py).
+- Clean execution passing all 6 tests in [test_kernel_integration.py](./tests/test_kernel_integration.py).
 - Entire project-wide test suite successfully verified with 103/103 tests passing cleanly.
 
 ---
@@ -476,7 +476,7 @@ Implemented and validated the deterministic Conversation Runtime acting as the m
 
 ### Validation
 
-- Clean execution passing all 7 tests in [test_conversation_runtime.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_conversation_runtime.py) validating request schemas, descriptor generation, direct mode bypass, database-bound planning mode, context matching, and API endpoints.
+- Clean execution passing all 7 tests in [test_conversation_runtime.py](./tests/test_conversation_runtime.py) validating request schemas, descriptor generation, direct mode bypass, database-bound planning mode, context matching, and API endpoints.
 - Entire project-wide test suite successfully verified with 110/110 tests passing cleanly.
 
 ---
@@ -500,7 +500,7 @@ Implemented and validated a unified, immutable, and typed descriptor framework a
 
 ### Validation
 
-- Clean execution passing all 7 tests in [test_descriptors.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_descriptors.py) verifying inheritance, protocol compliance, serialization, stable IDs, prompt metadata, and immutability.
+- Clean execution passing all 7 tests in [test_descriptors.py](./tests/test_descriptors.py) verifying inheritance, protocol compliance, serialization, stable IDs, prompt metadata, and immutability.
 - Entire project-wide test suite successfully verified with 117/117 tests passing cleanly.
 
 ---
@@ -520,7 +520,7 @@ Implemented and validated a unified, metadata-only Capability Registry that inde
 
 ### Validation
 
-- Clean execution passing all 7 tests in [test_capability_registry.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_capability_registry.py) verifying successful registration, duplicate ID rejection, integrity validation rules, deterministic ordering, unregister behavior, retrieval immutability, and tag filtering.
+- Clean execution passing all 7 tests in [test_capability_registry.py](./tests/test_capability_registry.py) verifying successful registration, duplicate ID rejection, integrity validation rules, deterministic ordering, unregister behavior, retrieval immutability, and tag filtering.
 - Entire project-wide test suite successfully verified with 124/124 tests passing cleanly.
 
 ---
@@ -539,7 +539,7 @@ Implemented and validated the Capability Discovery Service translating metadata 
 
 ### Validation
 
-- Clean execution passing all 6 tests in [test_capability_discovery.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_capability_discovery.py) verifying summaries mapping, dynamic grouping (catalog updates), filters, ordering, and stateless calls.
+- Clean execution passing all 6 tests in [test_capability_discovery.py](./tests/test_capability_discovery.py) verifying summaries mapping, dynamic grouping (catalog updates), filters, ordering, and stateless calls.
 - Entire project-wide test suite successfully verified with 130/130 tests passing cleanly.
 
 ---
@@ -558,7 +558,7 @@ Exposed and validated the Capability Discovery API endpoints in the FastAPI Gate
 
 ### Validation
 
-- Clean execution passing all 4 tests in [test_capabilities_api.py](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/tests/test_capabilities_api.py) verifying catalog structure, detailed view parameters, valid/invalid category filters, enabled/configurable selectors, and alphabetical sort checks.
+- Clean execution passing all 4 tests in [test_capabilities_api.py](./tests/test_capabilities_api.py) verifying catalog structure, detailed view parameters, valid/invalid category filters, enabled/configurable selectors, and alphabetical sort checks.
 - Entire project-wide test suite successfully verified with 156/156 tests passing cleanly.
 
 ---
@@ -596,7 +596,7 @@ Defined the foundational Product Experience Architecture governing all future us
 
 ### Capabilities
 
-- **Experiential Product Foundation**: Formulated the specification document [experience_architecture.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/docs/00_Foundation/experience_architecture.md) at the product root foundation layer.
+- **Experiential Product Foundation**: Formulated the specification document [experience_architecture.md](./docs/00_Foundation/experience_architecture.md) at the product root foundation layer.
 - **Human Cognitive Modeling**: Modeled the "Associative Web" to replace rigid physical folder systems, aligning with human memory and temporal patterns.
 - **Cognitive Commitments**: Established 5 core immutable platform constraints protecting user attention, explainability, provenance, location independence, and context preservation.
 - **Experience Invariants**: Outlined the five foundational UX principles: Calm over Density, Explain before Expose, Purpose before Implementation, Progressive Disclosure, and Context over Navigation.
@@ -615,7 +615,7 @@ Defined the foundational Product Information Architecture governing how attentio
 
 ### Capabilities
 
-- **Information Architecture Specification**: Formulated the specification document [information_architecture.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/docs/00_Foundation/information_architecture.md) at the product root foundation layer.
+- **Information Architecture Specification**: Formulated the specification document [information_architecture.md](./docs/00_Foundation/information_architecture.md) at the product root foundation layer.
 - **Attention Layering Model**: Developed a five-stage concentric attention model (Immediate Focus ➔ Current Focus ➔ Supporting Context ➔ Background Awareness ➔ Dormant Knowledge) to control visual and mental bandwidth.
 - **Deterministic Information Priority Rules**: Established clear, system-wide rules for resolving attention conflicts between user intent, focus context, emergent connections, background signals, and system metadata.
 - **Experience Spaces Mapping**: Conceptualized DeepCore into four core cognitive spaces (Awareness, Knowledge, Understanding, Administration) mapping current views (Home, Library, Themes, Platform) onto them to separate cognitive workspaces from administrative systems.
@@ -626,3 +626,146 @@ Defined the foundational Product Information Architecture governing how attentio
 ### Validation
 
 - Verified specification document creation and alignment with the experience invariants.
+
+---
+
+## Milestone Complete — Knowledge Acquisition Platform Architecture
+
+The Knowledge Acquisition Platform Architecture is completed, approved, and frozen. It establishes the foundational, pluggable boundary layer for external sources.
+
+### Status Details
+- **Architecture Approved**: Frozen specification document created at [KNOWLEDGE_ACQUISITION_ARCHITECTURE.md](./docs/10_Architecture/KNOWLEDGE_ACQUISITION_ARCHITECTURE.md).
+- **Connector Platform Boundary Established**: Strict separation between pluggable connectors/translators and internal kernel components (Acquisition Runtime, Ingestion Service).
+- **Knowledge Source Model Finalized**: Decoupled Connector (installable package code) from Knowledge Source (configured workspace instance, e.g. personal vs. work folders).
+- **Connector Taxonomy Finalized**: Connectors classified into Source, Index, Intelligence, and Export connectors.
+- **Translation Invariants Finalized**: Translators mandated as pure, deterministic transformation functions without DB, network, AI, or state modification access.
+- **Acquisition Runtime Established**: Runtime orchestration manages sync loops, retry boundaries, cursor states, and emits events for platform observability.
+- **Reference Connector Strategy Adopted**: Enforced reference connector policy (Filesystem for Source, Apple Spotlight for Index, OCR for Intelligence, Markdown Export for Export).
+
+### Validation
+- Validated core engine logic using in-memory mock connectors in [test_acquisition_platform.py](./tests/test_acquisition_platform.py) ensuring 100% test coverage for framework code.
+
+---
+
+## Milestone Complete — Connector Library Architecture
+
+The Connector Library Architecture is completed, approved, and frozen. It establishes the administrative, packaging, and permission governance models for DeepCore plugins.
+
+### Status Details
+- **Architecture Approved**: Frozen specification document created at [CONNECTOR_LIBRARY_ARCHITECTURE.md](./docs/10_Architecture/CONNECTOR_LIBRARY_ARCHITECTURE.md).
+- **Connector Packaging Model Finalized**: Defined hierarchy from Connector Package, ProviderDescriptor, Connector implementation, Translator function, down to DB-configured Knowledge Source.
+- **Config Levels Separated**: Established clean separation between Connector Configuration (global package levels), Knowledge Source Configuration (specific instance levels), and Workspace Bindings (workspace-level isolation).
+- **Extension Marketplace Philosophy**: Adopted the VS Code extension marketplace design for managing third-party extensions.
+- **Permissions Architecture Finalized**: Formulated capability-based user-managed permissions mapping directly into ProviderDescriptors.
+- **Reference Strategy Confirmed**: Locked Filesystem connector as the initial reference integration verifying the platform runtime, blocking other connector categories until validation succeeds.
+
+### Validation
+- Verified specification document creation and alignment with the Experience Architecture principles.
+
+---
+
+## Milestone Complete — Filesystem Reference Source Connector
+
+The Filesystem Reference Source Connector is completed, approved, and frozen as the reference standard for all source connectors.
+
+### Status Details
+- **Legacy Migration Complete**: Fully migrated the legacy `MarkdownProvider` to the pluggable Connector platform.
+- **Reference Connector Established**: The Filesystem Connector acts as the initial reference blueprint, yielding platform-agnostic file properties.
+- **Translator Purity Validated**: `MarkdownTranslator` verified as a pure function, isolating file reads, content hashing, and registry mapping.
+- **Acquisition Runtime Validated**: Runtime state machine tested against the production workflow, managing sync, progress, and cursors.
+- **Knowledge Source Ownership Preserved**: Admin-level validation restricts sync execution to pre-configured database sources, raising errors on unconfigured paths.
+- **Incremental Sync & Deletions Validated**: Fully handles modification scans and processes orphaned files by marking deleted files as `missing`.
+
+### Validation
+- Clean execution of all 180 automated tests (passing `test_filesystem_connector.py`, `test_cli.py`, and `test_sync_reliability.py`).
+
+---
+
+## Milestone Complete — Calendar Reference Source Connector
+
+The Calendar Reference Source Connector is completed, approved, and frozen as the reference standard for Temporal Source Connectors.
+
+### Status Details
+- **Temporal Knowledge Domain Established**: Modeled standard entities (`Event`, `Time Interval`, `Participant`, `Location`, `Reminder`, `Recurrence`) in a reusable schema layer.
+- **Calendar Provider Abstraction Validated**: Decoupled EventKit native access from the platform, enabling modular provider adapters (`EventKitProvider` and `MockCalendarProvider`).
+- **Canonical Recurrence Model**: Mapped iCal recurrence rules to structured frequency, interval, and exception datetimes.
+- **Extensible Participant Model**: Enabled support for both human attendees and non-human workspace resources.
+- **Runtime-owned Registry Ingestion**: Decoupled translators from SQLite models by moving ingestion mapping inside `AcquisitionRuntime.run_sync()`.
+- **Generic Knowledge Source Synchronization**: Integrated a generic CLI synchronization command operating on Knowledge Sources rather than connector-specific endpoints.
+
+### Validation
+- Clean execution of all 185 automated tests (passing `test_calendar_connector.py` alongside other test suites).
+
+---
+
+## Milestone Complete — Apple Spotlight Reference Index Connector
+
+The Apple Spotlight Reference Index Connector is completed, approved, and frozen as the reference standard for Index Connectors.
+
+### Status Details
+- **Discovery Domain Established**: Implemented the canonical `DiscoveredArtifact` domain model for platform-independent resource queries.
+- **Discovery Strategies Abstraction Validated**: Decoupled queries into high-level Workspace Scope, File Type, and Custom Tags filters.
+- **Discovery Classification Introduced**: Isolated translation from classification via a dedicated ingestion classifier inside `AcquisitionRuntime`.
+- **Index Connector Category Validated**: Established native query translation and non-macOS fallback scan mechanics.
+- **Platform-independent Discovery Model**: Enabled consistent strategy execution across macOS (`mdfind`) and other platforms (glob walker).
+- **190 Automated Tests Passing**: All tests validated and green.
+
+---
+
+## Platform Status — Knowledge Acquisition Platform (v1.0 Validation)
+
+The first generation of the Knowledge Acquisition Platform is now fully validated through the following production-grade reference implementations:
+
+1. **Source Connector (Filesystem)**: Standardized directory structure walking, checksum hashing, and legacy markdown migrations.
+2. **Source Connector (Temporal)**: Standardized extensible workspace participant modeling and canonical recurrence parameters.
+3. **Index Connector (Discovery)**: Standardized ambient filesystem resource search, file strategies, and decoupled mapping classification.
+
+The Knowledge Acquisition Platform boundary is now considered complete and stable for future connector expansions.
+
+---
+
+## Milestone Complete — DeepCore Home Experience
+
+The DeepCore Home Experience is completed and approved, establishing the cognitive center of gravity of the application.
+
+### Status Details
+- **Awareness Service & State**: Introduced `AwarenessService` in the backend composing the `AwarenessState` model as a first-class platform capability positioned between Context and Experience:
+  ```
+  Knowledge ➔ Relationships ➔ Signals ➔ Context ➔ Awareness ➔ Experience ➔ Assistant
+  ```
+- **Progressive Cognitive Flow**: Structured the Home UI to flow naturally through Recognition (context restoration), Orientation (explain changes), Understanding (observations), and Continuation (next guided steps).
+- **Intent-Based Focus**: Introduced the `FocusIntent` abstraction to model the user's active focus state around intent rather than simple file recency.
+- **Platform Separation**: Home no longer functions as a platform dashboard; all diagnostics, metrics, and administration are isolated in the Platform Center.
+- **198 Automated Tests Passing**: Verified focus sorting, timeline runs logging, orphan notes detection, and next prompt mappings.
+
+---
+
+## Milestone Complete — Assistant Experience
+
+The Assistant Experience is completed, approved, and frozen, establishing the collaborative thinking sessions and evidence-anchored citations.
+
+### Status Details
+- **Thinking Session Hierarchy**: Established the structural hierarchy `Thinking Session ➔ Conversation ➔ Messages`, modeling the Assistant as a participant in a broader cognitive session.
+- **Conversation Abstraction**: Separated the interface container (conversation) from the user's cognitive session (thinking session).
+- **Capability-Based Thinking Modes**: Modeled `ThinkingModeDescriptor` as a dynamic capability contributed by plugins, pre-loading 5 built-in modes: Continue Thinking, Recover Context, Explore Relationships, Challenge Assumptions, and Summarize Theme.
+- **Platform-Level Evidence Model**: Extracted `Evidence` into a platform-level primitive schema reusable across all layers (Awareness, Relationships, Concepts, and Assistant).
+- **Decoupled Persistence**: Structured `ConversationRepository` to isolate SQLAlchemy operations, ensuring orchestration is separated from storage dependencies.
+- **Platform State Consumption**: The Assistant reasons over the composed `ConversationState` (comprising `FocusIntent`, `AwarenessState`, and `ContextPackages`) rather than constructing context in isolation.
+- **Interactive Evidence Inspector**: Built a visual evidence inspector panel inside the React Assistant pane to expose provenance paths and justifications.
+- **198 Automated Tests Passing**: Verified full repository CRUD, service session flows, and API endpoints.
+
+> [!NOTE]
+> **Future Refinement — Evidence Generation Pipeline**
+> Evidence generation is currently orchestrated by the Assistant layer as an implementation convenience. Long-term ownership belongs to a dedicated platform Evidence Service so that Home, Relationships, Context, and Assistant all consume a common evidence pipeline.
+
+---
+
+## Phase Status — Constitutional Experience Architecture (FROZEN)
+
+Incorporated final architectural refinements and froze the constitutional human-machine interface rules, spatial-temporal grammars, and experience invariants of DeepCore in [.ai/architecture/EXPERIENCE_ARCHITECTURE_V2.md](./.ai/architecture/EXPERIENCE_ARCHITECTURE_V2.md). All future layout, workspace, and interaction designs must conform to this specification. The next phase will build visual blueprints and interaction flows against this frozen architecture.
+
+---
+
+## Phase Status — Connector Experience Specification (COMPLETE)
+
+Completed and froze the implementation-oriented UX specification blueprint in [docs/20_Specifications/CONNECTOR_EXPERIENCE_BLUEPRINT.md](./docs/20_Specifications/CONNECTOR_EXPERIENCE_BLUEPRINT.md). This specification maps the 8-stage Trust Lifecycle journey, detailed screen flows, transitions, and trust messaging. The next milestone transitions to Stitch prototyping and visual design.

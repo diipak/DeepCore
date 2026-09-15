@@ -6,7 +6,7 @@ import { api } from '../services/api';
 import type { RegistryObject, SystemStats } from '../services/api';
 import { 
   BookOpen, Brain, Network, FileText, Video, Calendar, Mail, DollarSign, 
-  Activity, Sun, Moon, FolderSync, Home, GitBranch, Globe
+  Activity, Sun, Moon, FolderSync, Home, GitBranch, Globe, Shield
 } from 'lucide-react';
 
 export const NavigationTree: React.FC<{ className?: string }> = ({ className }) => {
@@ -48,6 +48,34 @@ export const NavigationTree: React.FC<{ className?: string }> = ({ className }) 
   }, [state.selectedObjectId]); // Re-fetch when selection changes
 
   // Helper checks for active status
+  const getSourceIcon = (id: string) => {
+    switch (id?.toLowerCase()) {
+      case 'youtube':
+        return <Video className="w-4 h-4 shrink-0 text-accent-video" />;
+      case 'github':
+        return <GitBranch className="w-4 h-4 shrink-0 text-accent-concept" />;
+      case 'web':
+        return <Globe className="w-4 h-4 shrink-0 text-accent-memory" />;
+      case 'markdown':
+      default:
+        return <FileText className="w-4 h-4 shrink-0 text-accent-memory" />;
+    }
+  };
+
+  const getSourceUnit = (id: string) => {
+    switch (id?.toLowerCase()) {
+      case 'youtube':
+        return 'memories';
+      case 'github':
+        return 'repositories';
+      case 'web':
+        return 'resources';
+      case 'markdown':
+      default:
+        return 'notes';
+    }
+  };
+
   const isSurfaceActive = (surface: string, sourceFilter?: string) => {
     if (state.activeSurface !== surface) return false;
     if (sourceFilter && state.activeSourceFilter !== sourceFilter) return false;
@@ -139,77 +167,27 @@ export const NavigationTree: React.FC<{ className?: string }> = ({ className }) 
             Sources
           </h4>
           <div className="space-y-0.5">
-            {/* Obsidian */}
-            <div className="group/src flex items-center justify-between w-full rounded-lg hover:bg-background-primary transition-all">
-              <button
-                onClick={() => navigate('/memories?source=markdown')}
-                className={`flex-1 flex items-center space-x-3 px-3 py-2 text-xs font-semibold transition-all cursor-pointer text-left ${
-                  isSurfaceActive('memories', 'markdown')
-                    ? 'text-accent-memory font-bold'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <FileText className="w-4 h-4 shrink-0 text-accent-memory" />
-                <span className="truncate">Obsidian Note</span>
-              </button>
-              <span className="text-[10px] text-text-secondary/60 mr-2 shrink-0 font-medium">
-                {stats?.by_source?.markdown || 0} notes
-              </span>
-            </div>
-
-            {/* YouTube */}
-            <div className="group/src flex items-center justify-between w-full rounded-lg hover:bg-background-primary transition-all">
-              <button
-                onClick={() => navigate('/memories?source=youtube')}
-                className={`flex-1 flex items-center space-x-3 px-3 py-2 text-xs font-semibold transition-all cursor-pointer text-left ${
-                  isSurfaceActive('memories', 'youtube')
-                    ? 'text-accent-video font-bold'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <Video className="w-4 h-4 shrink-0 text-accent-video" />
-                <span className="truncate">YouTube Capture</span>
-              </button>
-              <span className="text-[10px] text-text-secondary/60 mr-2 shrink-0 font-medium">
-                {stats?.by_source?.youtube || 0} memories
-              </span>
-            </div>
-
-            {/* GitHub */}
-            <div className="group/src flex items-center justify-between w-full rounded-lg hover:bg-background-primary transition-all">
-              <button
-                onClick={() => navigate('/memories?source=github')}
-                className={`flex-1 flex items-center space-x-3 px-3 py-2 text-xs font-semibold transition-all cursor-pointer text-left ${
-                  isSurfaceActive('memories', 'github')
-                    ? 'text-accent-concept font-bold'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <GitBranch className="w-4 h-4 shrink-0 text-accent-concept" />
-                <span className="truncate">GitHub</span>
-              </button>
-              <span className="text-[10px] text-text-secondary/60 mr-2 shrink-0 font-medium">
-                {stats?.by_source?.github || 0} repositories
-              </span>
-            </div>
-
-            {/* Web */}
-            <div className="group/src flex items-center justify-between w-full rounded-lg hover:bg-background-primary transition-all">
-              <button
-                onClick={() => navigate('/memories?source=web')}
-                className={`flex-1 flex items-center space-x-3 px-3 py-2 text-xs font-semibold transition-all cursor-pointer text-left ${
-                  isSurfaceActive('memories', 'web')
-                    ? 'text-accent-memory font-bold'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <Globe className="w-4 h-4 shrink-0 text-accent-memory" />
-                <span className="truncate">Web</span>
-              </button>
-              <span className="text-[10px] text-text-secondary/60 mr-2 shrink-0 font-medium">
-                {stats?.by_source?.web || 0} resources
-              </span>
-            </div>
+            {stats?.sources && stats.sources.map((src) => {
+              if (!src.visible) return null;
+              return (
+                <div key={src.id} className="group/src flex items-center justify-between w-full rounded-lg hover:bg-background-primary transition-all">
+                  <button
+                    onClick={() => navigate(`/memories?source=${src.id}`)}
+                    className={`flex-1 flex items-center space-x-3 px-3 py-2 text-xs font-semibold transition-all cursor-pointer text-left ${
+                      isSurfaceActive('memories', src.id)
+                        ? 'text-accent-memory font-bold'
+                        : 'text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    {getSourceIcon(src.id)}
+                    <span className="truncate">{src.name}</span>
+                  </button>
+                  <span className="text-[10px] text-text-secondary/60 mr-2 shrink-0 font-medium">
+                    {src.count} {getSourceUnit(src.id)}
+                  </span>
+                </div>
+              );
+            })}
 
             {/* Future Providers (Calendar, Mail, Finance, Fitness) */}
             <div className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-text-secondary/40 select-none cursor-not-allowed">
@@ -292,23 +270,38 @@ export const NavigationTree: React.FC<{ className?: string }> = ({ className }) 
         </div>
       </div>
 
-      {/* Theme Toggler Button */}
-      <button
-        onClick={() => setIsDark(!isDark)}
-        className="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-background-primary hover:text-text-primary transition-all border border-border-primary w-full justify-center cursor-pointer mt-4"
-      >
-        {isDark ? (
-          <>
-            <Sun className="w-4 h-4" />
-            <span>Light Mode</span>
-          </>
-        ) : (
-          <>
-            <Moon className="w-4 h-4" />
-            <span>Dark Mode</span>
-          </>
-        )}
-      </button>
+      <div className="space-y-2 mt-4">
+        {/* Platform Center Button */}
+        <button
+          onClick={() => navigate('/platform')}
+          className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all border w-full justify-center cursor-pointer ${
+            isSurfaceActive('platform')
+              ? 'bg-accent-primary/10 text-accent-primary border-accent-primary/20 font-bold'
+              : 'text-text-secondary hover:bg-background-primary hover:text-text-primary border-border-primary'
+          }`}
+        >
+          <Shield className="w-4 h-4 shrink-0" />
+          <span>Platform Center</span>
+        </button>
+
+        {/* Theme Toggler Button */}
+        <button
+          onClick={() => setIsDark(!isDark)}
+          className="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-background-primary hover:text-text-primary transition-all border border-border-primary w-full justify-center cursor-pointer"
+        >
+          {isDark ? (
+            <>
+              <Sun className="w-4 h-4" />
+              <span>Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4" />
+              <span>Dark Mode</span>
+            </>
+          )}
+        </button>
+      </div>
     </aside>
   );
 };

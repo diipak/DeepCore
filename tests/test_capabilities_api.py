@@ -98,5 +98,5 @@ def test_filtering_endpoints(api_client):
     assert response_config.status_code == 200
     config_data = response_config.json()
     assert all(item["configurable"] is True for item in config_data)
-    # Check that provider_md is in the list
-    assert any(item["id"] == "markdown_provider" for item in config_data)
+    # Check that filesystem provider is in the list
+    assert any(item["id"] == "filesystem" for item in config_data)

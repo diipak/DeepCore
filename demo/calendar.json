@@ -1,0 +1,28 @@
+[
+  {
+    "uid": "cal_evt_1",
+    "summary": "DeepCore Architecture Review",
+    "description": "Discussing phase 17.2 runtime wiring and phase 18 home experience design.",
+    "start_time": "2026-07-29T10:00:00Z",
+    "end_time": "2026-07-29T11:00:00Z",
+    "modified_at_ts": 1785232800.0,
+    "location": {"title": "Virtual Room Alpha"},
+    "organizer": {"name": "Lead Architect", "email": "architect@deepcore.local"},
+    "attendees": [
+      {"name": "Developer Team", "email": "dev@deepcore.local"}
+    ]
+  },
+  {
+    "uid": "cal_evt_2",
+    "summary": "Onboarding UX Alignment",
+    "description": "Verify experience guidelines of the connector onboarding stages.",
+    "start_time": "2026-07-29T14:00:00Z",
+    "end_time": "2026-07-29T15:00:00Z",
+    "modified_at_ts": 1785232800.0,
+    "location": {"title": "Virtual Room Beta"},
+    "organizer": {"name": "UX Lead", "email": "ux@deepcore.local"},
+    "attendees": [
+      {"name": "Product Owner", "email": "po@deepcore.local"}
+    ]
+  }
+]

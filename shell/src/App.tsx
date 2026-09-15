@@ -18,6 +18,8 @@ const App: React.FC = () => {
             <Route path="graph" element={<WorkspaceLayout />} />
             <Route path="graph/:name" element={<WorkspaceLayout />} />
             <Route path="assistant" element={<WorkspaceLayout />} />
+            <Route path="system" element={<WorkspaceLayout />} />
+            <Route path="platform" element={<WorkspaceLayout />} />
           </Route>
         </Routes>
       </WorkspaceProvider>

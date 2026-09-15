@@ -82,13 +82,11 @@ export const MemoryDetail: React.FC = () => {
 
   // Parse provider details from metadata_json
   let relativePath = '';
-  let folder = '';
   let providerName = 'Markdown';
   if (details.metadata_json) {
     try {
       const meta = JSON.parse(details.metadata_json);
       relativePath = meta.relative_path || '';
-      folder = meta.folder || '';
       providerName = meta.provider || details.source || 'Markdown';
     } catch (e) {
       // ignore
@@ -206,7 +204,7 @@ export const MemoryDetail: React.FC = () => {
                       <span className="text-text-secondary/60">{prefix}</span>
                       <span>{emoji}</span>
                       <Link
-                        to={`/objects/${ref.uuid}`}
+                        to={`/memories/${ref.uuid}`}
                         className="hover:underline font-medium text-text-primary"
                       >
                         {ref.title}
@@ -260,12 +258,13 @@ export const MemoryDetail: React.FC = () => {
                     }
                     
                     const evidenceDetail = rel.evidence?.detail || JSON.stringify(rel.evidence);
+                    const targetLink = rel.navigation_hint || `/memories/${rel.target_object_uuid}`;
                     
                     return (
                       <tr key={rel.uuid} className="hover:bg-background-primary/20 transition-colors">
                         <td className="py-3 font-semibold pr-3">
                           <Link 
-                            to={`/objects/${rel.target_object_uuid}`}
+                            to={targetLink}
                             className="hover:underline text-accent-primary"
                           >
                             {rel.target_object_title}

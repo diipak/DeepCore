@@ -117,22 +117,38 @@ def test_cli_stats(db_session, cli_runner):
     assert "By Source:\n\nyoutube: 2\nmanual: 1" in result.stdout
 
 
-def test_cli_sync_markdown(staged_notes_dir, cli_runner):
+def test_cli_sync_markdown(db_session, staged_notes_dir, cli_runner):
     """Verify that deepcore sync markdown <path> runs successfully and prints correct sync statistics."""
+    from deepcore.storage.sqlite.models import KnowledgeSource as DBKnowledgeSource
+    import json
+
+    # Pre-create KnowledgeSource (Amendment 1 requires it)
+    source = DBKnowledgeSource(
+        workspace_id=1,
+        provider_id="filesystem",
+        kind="filesystem",
+        name="Test Obsidian Notes",
+        location=staged_notes_dir,
+        config_json=json.dumps({"path": staged_notes_dir}),
+        status="Configured"
+    )
+    db_session.add(source)
+    db_session.commit()
+
     # 1. Run sync first time (3 files scanned, 3 new)
     result1 = cli_runner.invoke(app, ["sync", "markdown", staged_notes_dir])
     assert result1.exit_code == 0
-    assert "DeepCore Markdown Sync" in result1.stdout
-    assert "Scanned:\n3 files" in result1.stdout
-    assert "New:\n3" in result1.stdout
-    assert "Existing:\n0" in result1.stdout
+    assert "DeepCore Sync Completed Successfully" in result1.stdout
+    assert "Scanned:  3 files" in result1.stdout
+    assert "Created:  3 files" in result1.stdout
+    assert "Existing: 0 files" in result1.stdout
     
-    # 2. Run sync second time (3 files scanned, 3 existing)
+    # 2. Run sync second time (0 files scanned as none are modified)
     result2 = cli_runner.invoke(app, ["sync", "markdown", staged_notes_dir])
     assert result2.exit_code == 0
-    assert "Scanned:\n3 files" in result2.stdout
-    assert "New:\n0" in result2.stdout
-    assert "Existing:\n3" in result2.stdout
+    assert "Scanned:  0 files" in result2.stdout
+    assert "Created:  0 files" in result2.stdout
+    assert "Existing: 0 files" in result2.stdout
 
 
 def test_cli_find(db_session, cli_runner):

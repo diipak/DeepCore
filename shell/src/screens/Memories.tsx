@@ -14,7 +14,7 @@ export const Memories: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeType, setActiveType] = useState<FilterType>('all');
 
-  const [syncPath, setSyncPath] = useState<string>('/Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/demo/markdown');
+  const [syncPath, setSyncPath] = useState<string>('demo/markdown');
   const [syncing, setSyncing] = useState<boolean>(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncResult, setSyncResult] = useState<any | null>(null);

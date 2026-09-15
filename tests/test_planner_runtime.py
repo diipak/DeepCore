@@ -471,3 +471,17 @@ def test_plan_cancellation(runtime_setup):
     assert res.plan.status == PlanStatus.CANCELLED
     assert step_1.status == StepStatus.FAILED  # Marked failed due to cancellation
     assert step_1.error_message == "Execution cancelled."
+
+
+def test_planner_runtime_build_and_execute_plan(runtime_setup):
+    planner = runtime_setup["planner_runtime"]
+    plan = planner.build_plan_for_goal("Search for Blueprint")
+    
+    req = PlannerRequest(request_id="req-build-exec", plan=plan)
+    res = planner.execute(req)
+    
+    assert res.status == PlannerStatus.SUCCESS
+    assert res.plan.status == PlanStatus.SUCCEEDED
+    assert "Planner Blueprint Spec" in str(res.plan.steps[-1].outputs.get("result"))
+
+

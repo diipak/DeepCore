@@ -1,0 +1,732 @@
+import click
+from typer.core import TyperOption
+import inspect
+
+# 1. Patch is_flag detection bug in Click 8.2+ compatibility with Typer 0.12
+sig = inspect.signature(click.Option.__init__)
+click_unset = sig.parameters["flag_value"].default
+
+orig_init = TyperOption.__init__
+orig_init_sig = inspect.signature(orig_init)
+def patched_init(self, *args, **kwargs):
+    if kwargs.get("is_flag") is True and kwargs.get("type") is None:
+        kwargs["type"] = click.BOOL
+    if "flag_value" in orig_init_sig.parameters:
+        if kwargs.get("flag_value") is None and kwargs.get("is_flag") is not True:
+            if kwargs.get("type") != click.BOOL:
+                kwargs["flag_value"] = click_unset
+    orig_init(self, *args, **kwargs)
+
+TyperOption.__init__ = patched_init
+
+# 2. Patch make_metavar compatibility bug in Click 8.2+ compatibility with Typer 0.12
+orig_make_metavar = click.Parameter.make_metavar
+def patched_make_metavar(self, ctx=None):
+    if ctx is None:
+        ctx = click.get_current_context(silent=True)
+    if ctx is None:
+        if self.metavar is not None:
+            return self.metavar
+        metavar = self.type.name.upper()
+        if self.nargs != 1:
+            metavar += "..."
+        return metavar
+    return orig_make_metavar(self, ctx)
+
+click.Parameter.make_metavar = patched_make_metavar
+
+import typer
+from typing import Optional
+from deepcore2.storage.sqlite.db import SessionLocal
+from deepcore2.core.capture.service import CaptureService, UnsupportedInputError
+from deepcore2.core.registry.service import RegistryService
+from deepcore2.core.objects.schemas import RegistryObject as SchemaRegistryObject
+
+app = typer.Typer(help="DeepCore CLI Interface")
+
+# Automatically initialize and migrate SQLite database tables if they do not exist
+from deepcore2.storage.sqlite.db import engine
+from deepcore2.storage.sqlite.models import run_migrations
+run_migrations(engine)
+
+@app.command("capture")
+def capture(content: str):
+    """Capture a URL or source into DeepCore."""
+    db = SessionLocal()
+    try:
+        service = CaptureService(db)
+        obj = service.capture(content)
+        schema_obj = SchemaRegistryObject.model_validate(obj)
+        
+        typer.echo("Captured successfully\n")
+        typer.echo(f"Type:\n{schema_obj.object_type.value}\n")
+        typer.echo(f"Title:\n{schema_obj.title}\n")
+        typer.echo(f"Source:\n{schema_obj.source_system}\n")
+        typer.echo(f"UUID:\n{schema_obj.uuid}")
+    except UnsupportedInputError as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    except ValueError as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        typer.echo(f"Unexpected Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("list")
+def list_objects(
+    object_type: str = typer.Option(None, "--type", help="Filter by object type"),
+    source: str = typer.Option(None, "--source", help="Filter by source system")
+):
+    """List objects registered in DeepCore."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        filters = {}
+        if object_type:
+            filters["object_type"] = object_type
+        if source:
+            filters["source_system"] = source
+            
+        db_objects = service.list_objects(filters=filters)
+        objects = [SchemaRegistryObject.model_validate(obj) for obj in db_objects]
+        
+        typer.echo("TYPE | TITLE | SOURCE | CREATED")
+        for obj in objects:
+            created_str = obj.created_at.strftime("%Y-%m-%d")
+            typer.echo(f"{obj.object_type.value} | {obj.title} | {obj.source_system} | {created_str}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("stats")
+def stats():
+    """Show statistics about the DeepCore registry."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        stats_data = service.get_statistics()
+        
+        total_objects = stats_data["total_objects"]
+        by_type = stats_data["by_type"]
+        by_source = stats_data["by_source"]
+        
+        typer.echo("DeepCore Registry")
+        typer.echo()
+        typer.echo("Total Objects:")
+        typer.echo(total_objects)
+        typer.echo()
+        typer.echo()
+        typer.echo("By Type:")
+        typer.echo()
+        
+        # Sort by count descending, then alphabetically by name
+        sorted_types = sorted(by_type.items(), key=lambda x: (-x[1], x[0]))
+        for t, count in sorted_types:
+            typer.echo(f"{t}: {count}")
+        typer.echo()
+        typer.echo()
+        typer.echo("By Source:")
+        typer.echo()
+        
+        # Sort by count descending, then alphabetically by name
+        sorted_sources = sorted(by_source.items(), key=lambda x: (-x[1], x[0]))
+        for s, count in sorted_sources:
+            typer.echo(f"{s}: {count}")
+            
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+sync_app = typer.Typer(help="Sync data from local/external sources")
+app.add_typer(sync_app, name="sync")
+
+@sync_app.command("markdown")
+def sync_markdown(path: str):
+    """Sync local Markdown notes into DeepCore."""
+    import os
+    import json
+    db = SessionLocal()
+    try:
+        from deepcore2.storage.sqlite.models import KnowledgeSource as DBKnowledgeSource
+        from deepcore2.core.acquisition.manager import AcquisitionManager
+        from deepcore2.core.acquisition.runtime import AcquisitionRuntime
+        from deepcore2.core.acquisition.ingestion import IngestionService
+        from deepcore2.core.registry.service import RegistryService
+
+        # 1. Query for existing Knowledge Source (Amendment 1)
+        norm_path = os.path.abspath(path)
+        source = db.query(DBKnowledgeSource).filter(
+            (DBKnowledgeSource.location == norm_path) | (DBKnowledgeSource.location == path)
+        ).first()
+
+        if not source:
+            typer.echo(
+                f"Error: No configured Knowledge Source found for path '{path}'.\n"
+                f"Knowledge Sources must be configured through the platform UI or administrative API first.",
+                err=True
+            )
+            raise typer.Exit(code=1)
+
+        # 2. Get application composition instances
+        from deepcore2.runtime.composition import get_application
+        app = get_application()
+        manager = app.acquisition_manager
+        runtime = app.acquisition_runtime
+
+        # Map provider id from db ("markdown" or "filesystem") to the new Filesystem Connector classes
+        connector_cls = manager.get_connector_class("filesystem")
+        translator_cls = manager.get_translator_class("filesystem")
+
+        connector = connector_cls()
+        translator = translator_cls()
+
+        # 3. Execute Ingestion Flow
+        typer.echo(f"Starting Knowledge Sync for Source '{source.name}' at '{source.location}'...")
+        sync_run = runtime.run_sync(
+            source_id=source.id,
+            connector=connector,
+            translator=translator,
+            full_sync=False,
+            db=db
+        )
+
+        if sync_run.status == "Error":
+            typer.echo(f"Sync failed: {sync_run.error_message}", err=True)
+            raise typer.Exit(code=1)
+
+        # 5. Incremental Delete Detection (Orphan Cleanup)
+        cursor_state = json.loads(source.cursor_state or "{}")
+        active_ids = cursor_state.get("active_ids", [])
+        missing_count = 0
+        if active_ids:
+            reg_service = RegistryService(db, workspace_id=source.workspace_id)
+            # Mark registered markdown objects not present in active_ids as missing
+            missing_count = reg_service.mark_missing_objects(source.name, source.location, active_ids)
+            sync_run.objects_missing = missing_count
+            db.commit()
+
+        # 6. Report Execution Statistics
+        typer.echo("DeepCore Sync Completed Successfully")
+        typer.echo()
+        typer.echo(f"Scanned:  {sync_run.objects_scanned} files")
+        typer.echo(f"Created:  {sync_run.objects_created} files")
+        typer.echo(f"Updated:  {sync_run.objects_updated} files")
+        typer.echo(f"Existing: {sync_run.objects_existing} files")
+        typer.echo(f"Missing:  {sync_run.objects_missing} files marked missing")
+
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Unhandled Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@sync_app.command("youtube")
+def sync_youtube(
+    playlist_url: Optional[str] = typer.Option(None, "--url", "-u", help="YouTube Playlist URL or ID")
+):
+    """Sync videos and spoken transcripts from a YouTube Playlist into Obsidian notes and index them."""
+    from deepcore2.config import settings
+    from deepcore2.core.providers.youtube import sync_youtube_playlist
+
+    target_url = playlist_url or settings.YOUTUBE_DEEPCORE_PLAYLIST_URL
+    typer.echo("Starting YouTube Playlist Sync...")
+    typer.echo(f"Playlist: {target_url}")
+    typer.echo(f"Captures Directory: {settings.YOUTUBE_CAPTURES_DIR}")
+    typer.echo()
+
+    db = SessionLocal()
+    try:
+        results = sync_youtube_playlist(
+            playlist_url=target_url,
+            output_dir=settings.YOUTUBE_CAPTURES_DIR,
+            db=db,
+            vault_source_id=1,
+        )
+
+        if "error" in results:
+            typer.echo(f"Error: {results['error']}", err=True)
+            raise typer.Exit(code=1)
+
+        typer.echo("✅ YouTube Sync Completed Successfully")
+        typer.echo(f"Videos Scanned:   {results['scanned']}")
+        typer.echo(f"New Notes Saved:  {results['new_written']}")
+        typer.echo(f"Already Present:  {results['skipped']}")
+        typer.echo(f"Objects Indexed:  {results['indexed']}")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Unhandled Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+
+@sync_app.command("history")
+def sync_history():
+    """Show sync runs history."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        runs = service.list_sync_runs()
+        
+        typer.echo("DATE | PROVIDER | SCANNED | NEW | STATUS")
+        for run in runs:
+            date_str = run.started_at.strftime("%Y-%m-%d")
+            typer.echo(f"{date_str} | {run.provider} | {run.objects_scanned} | {run.objects_created} | {run.status}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@sync_app.command("source")
+def sync_source(source_id: int):
+    """Sync any configured Knowledge Source by ID."""
+    import json
+    db = SessionLocal()
+    try:
+        from deepcore2.storage.sqlite.models import KnowledgeSource as DBKnowledgeSource
+        from deepcore2.core.acquisition.manager import AcquisitionManager
+        from deepcore2.core.acquisition.runtime import AcquisitionRuntime
+        from deepcore2.core.acquisition.ingestion import IngestionService
+        from deepcore2.core.registry.service import RegistryService
+
+        # 1. Fetch Knowledge Source
+        source = db.query(DBKnowledgeSource).filter(DBKnowledgeSource.id == source_id).first()
+        if not source:
+            typer.echo(f"Error: Knowledge Source with ID {source_id} not found.", err=True)
+            raise typer.Exit(code=1)
+
+        # 2. Resolve connector from application composition
+        from deepcore2.runtime.composition import get_application
+        app = get_application()
+        manager = app.acquisition_manager
+        runtime = app.acquisition_runtime
+
+        provider_id = source.provider_id
+        if provider_id == "markdown":
+            provider_id = "filesystem"
+
+        try:
+            connector_cls = manager.get_connector_class(provider_id)
+            translator_cls = manager.get_translator_class(provider_id)
+        except KeyError:
+            typer.echo(f"Error: Connector for provider '{provider_id}' is not registered.", err=True)
+            raise typer.Exit(code=1)
+
+        connector = connector_cls()
+        translator = translator_cls()
+
+        # 3. Run Ingest Sync
+        typer.echo(f"Starting Knowledge Sync for Source '{source.name}' ({source.provider_id})...")
+        sync_run = runtime.run_sync(
+            source_id=source.id,
+            connector=connector,
+            translator=translator,
+            full_sync=False,
+            db=db
+        )
+
+        if sync_run.status == "Error":
+            typer.echo(f"Sync failed: {sync_run.error_message}", err=True)
+            raise typer.Exit(code=1)
+
+        # 5. Incremental Delete Detection (Orphan Cleanup)
+        cursor_state = json.loads(source.cursor_state or "{}")
+        active_ids = cursor_state.get("active_ids", [])
+        missing_count = 0
+        if active_ids:
+            reg_service = RegistryService(db, workspace_id=source.workspace_id)
+            missing_count = reg_service.mark_missing_objects(source.name, source.location, active_ids)
+            sync_run.objects_missing = missing_count
+            db.commit()
+
+        # 6. Report statistics
+        typer.echo("DeepCore Sync Completed Successfully")
+        typer.echo()
+        typer.echo(f"Scanned:  {sync_run.objects_scanned} items")
+        typer.echo(f"Created:  {sync_run.objects_created} items")
+        typer.echo(f"Updated:  {sync_run.objects_updated} items")
+        typer.echo(f"Existing: {sync_run.objects_existing} items")
+        typer.echo(f"Missing:  {sync_run.objects_missing} items marked missing")
+
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Unhandled Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("find")
+def find(query: str):
+    """Find active registry objects by title, description, or location."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        results = service.search_objects(query)
+        typer.echo("ID | TYPE | TITLE | SOURCE")
+        typer.echo("--------------------------------")
+        for obj in results:
+            typer.echo(f"{obj.id} | {obj.object_type} | {obj.title} | {obj.source_system}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("show")
+def show(id_or_uuid: str):
+    """Show details of a specific registry object by ID or UUID."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        obj_details = service.get_object_details(id_or_uuid)
+        if not obj_details:
+            typer.echo(f"Error: Object with identifier '{id_or_uuid}' not found")
+            raise typer.Exit(code=1)
+        
+        typer.echo(f"Title: {obj_details['title']}")
+        typer.echo(f"Source: {obj_details['source']}")
+        typer.echo(f"Location: {obj_details['location'] or ''}")
+        typer.echo(f"Status: {obj_details['status']}")
+        typer.echo(f"Metadata: {obj_details['metadata_json'] or ''}")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@app.command("recent")
+def recent():
+    """Show recent active memory objects."""
+    db = SessionLocal()
+    try:
+        service = RegistryService(db)
+        recent_objs = service.recent_objects(limit=10)
+        typer.echo("Recent DeepCore Memories\n")
+        typer.echo("DATE | TYPE | TITLE | SOURCE")
+        for obj in recent_objs:
+            date_str = obj.created_at.strftime("%Y-%m-%d")
+            typer.echo(f"{date_str} | {obj.object_type} | {obj.title} | {obj.source_system}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+def extract_snippet(text: str, query: str, context_len: int = 30) -> str:
+    """Extract a snippet of text around the first match of query."""
+    idx = text.lower().find(query.lower())
+    if idx == -1:
+        snippet = text[:context_len * 2]
+        if len(text) > context_len * 2:
+            snippet += "..."
+        return snippet.replace("\n", " ").replace("\r", " ")
+    
+    start = max(0, idx - context_len)
+    end = min(len(text), idx + len(query) + context_len)
+    snippet = text[start:end]
+    snippet = snippet.replace("\n", " ").replace("\r", " ")
+    
+    if start > 0:
+        snippet = "..." + snippet
+    if end < len(text):
+        snippet = snippet + "..."
+    return snippet
+
+@app.command("index")
+def index_command():
+    """Index all active objects with supported content."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.content.service import ContentService
+        service = ContentService(db)
+        stats = service.index_all_active_objects()
+        typer.echo("DeepCore Content Index")
+        typer.echo()
+        typer.echo("Objects scanned:")
+        typer.echo(stats["scanned"])
+        typer.echo()
+        typer.echo("Indexed:")
+        typer.echo(stats["indexed"])
+        typer.echo()
+        typer.echo("Skipped:")
+        typer.echo(stats["skipped"])
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+content_app = typer.Typer(help="Manage and search content index")
+app.add_typer(content_app, name="content")
+
+@content_app.command("search")
+def content_search(query: str):
+    """Search indexed content raw text."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.content.service import ContentService
+        service = ContentService(db)
+        results = service.search_content(query)
+        typer.echo("ID | TITLE | MATCH")
+        typer.echo("------------------------------------")
+        for obj, idx in results:
+            snippet = extract_snippet(idx.raw_text, query)
+            typer.echo(f"{obj.id} | {obj.title} | {snippet}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@content_app.command("show")
+def content_show(id_or_uuid: str):
+    """Show preview of stored indexed content."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.content.service import ContentService
+        service = ContentService(db)
+        content_obj = service.get_content(id_or_uuid)
+        if not content_obj:
+            typer.echo(f"Error: No indexed content found for object '{id_or_uuid}'")
+            raise typer.Exit(code=1)
+        
+        preview = content_obj.raw_text[:1000]
+        typer.echo(preview)
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+concepts_app = typer.Typer(help="Manage and inspect extracted concepts")
+app.add_typer(concepts_app, name="concepts")
+
+@concepts_app.command("extract")
+def concepts_extract():
+    """Extract key concepts from all active indexed memories."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        stats = service.extract_all()
+        typer.echo("DeepCore Concept Extraction")
+        typer.echo()
+        typer.echo("Scanned:")
+        typer.echo(stats["scanned"])
+        typer.echo()
+        typer.echo("Concepts Created:")
+        typer.echo(stats["concepts_created"])
+        typer.echo()
+        typer.echo("Relationships Created:")
+        typer.echo(stats["relationships_created"])
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("list")
+def concepts_list(
+    limit: int = 50,
+    show_ignored: bool = False
+):
+    """List concepts ordered by connection count."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        
+        # Coerce show_ignored to boolean
+        val_show_ignored = False
+        if show_ignored is not None:
+            if isinstance(show_ignored, str):
+                val_show_ignored = show_ignored.lower() in ("true", "1", "yes", "t", "y")
+            else:
+                val_show_ignored = bool(show_ignored)
+                
+        service = ConceptService(db)
+        results = service.list_concepts(limit=limit, show_ignored=val_show_ignored)
+        typer.echo("CONCEPT | CONNECTIONS")
+        for obj, count in results:
+            typer.echo(f"{obj.title} | {count}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("show")
+def concepts_show(concept: str):
+    """Show details of a specific concept and its connected memories."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        import json
+        service = ConceptService(db)
+        concept_obj = service.get_concept_by_name(concept)
+        if not concept_obj:
+            typer.echo(f"Error: Concept '{concept}' not found")
+            raise typer.Exit(code=1)
+        
+        try:
+            metadata = json.loads(concept_obj.metadata_json) if concept_obj.metadata_json else {}
+        except Exception:
+            metadata = {}
+            
+        concept_type = metadata.get("concept_type", "unknown")
+        concept_status = metadata.get("concept_status", "candidate")
+        
+        typer.echo("Concept:")
+        typer.echo(concept_obj.title)
+        typer.echo()
+        typer.echo("Type:")
+        typer.echo(concept_type)
+        typer.echo()
+        typer.echo("Status:")
+        typer.echo(concept_status)
+        typer.echo()
+        typer.echo("Connected Memories:")
+        
+        memories = service.get_connected_memories(concept_obj.id)
+        for mem in memories:
+            typer.echo(f"- {mem.title}")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("ignore")
+def concepts_ignore(name: str):
+    """Mark a concept as ignored."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.ignore_concept(name)
+        typer.echo(f"Concept '{name}' marked as ignored.")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("approve")
+def concepts_approve(
+    name: str,
+    type: str = typer.Option("unknown", "--type", help="Concept type (tool, technology, project, person, organization, unknown)")
+):
+    """Approve a concept and set its type."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.approve_concept(name, concept_type=type)
+        typer.echo(f"Concept '{name}' approved with type '{type}'.")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("merge")
+def concepts_merge(source: str, target: str):
+    """Merge a source concept into a target concept, rerouting relationships."""
+    db = SessionLocal()
+    try:
+        from deepcore2.core.concepts.service import ConceptService
+        service = ConceptService(db)
+        service.merge_concepts(source, target)
+        typer.echo(f"Concept '{source}' merged into '{target}'.")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+@concepts_app.command("clean")
+def concepts_clean():
+    """Prune and clean up garbage concepts (Placeholder)."""
+    typer.echo("Pruning and garbage concept cleanup is not yet active (Architecture Guard Placeholder).")
+
+intelligence_app = typer.Typer(help="Manage intelligence layer tasks")
+app.add_typer(intelligence_app, name="intelligence")
+
+@intelligence_app.command("rebuild")
+def intelligence_rebuild():
+    """Reprocess all existing memories to extract and link child objects."""
+    db = SessionLocal()
+    try:
+        from deepcore2.storage.sqlite.models import RegistryObject as DBRegistryObject
+        from deepcore2.core.capture.service import CaptureService
+        
+        capture_service = CaptureService(db)
+        
+        # Get all active notes and documents
+        db_objs = db.query(DBRegistryObject).filter(
+            DBRegistryObject.status == "active",
+            DBRegistryObject.object_type.in_(["note", "document"])
+        ).all()
+        
+        typer.echo(f"Found {len(db_objs)} objects to reprocess.")
+        reprocessed = 0
+        
+        stats = {
+            "videos": 0,
+            "repositories": 0,
+            "documents": 0,
+            "relationships": 0,
+            "skipped": 0
+        }
+        
+        for obj in db_objs:
+            # We pass an empty set for processed_urls to start a clean recursion path per parent
+            capture_service.process_embedded_resources(obj, set(), stats=stats)
+            reprocessed += 1
+            if reprocessed % 5 == 0 or reprocessed == len(db_objs):
+                typer.echo(f"Reprocessed {reprocessed}/{len(db_objs)} objects...")
+                
+        typer.echo("")
+        typer.echo("🧠 Intelligence rebuild complete")
+        typer.echo("")
+        typer.echo("Processed:")
+        typer.echo(f"{reprocessed} memories")
+        typer.echo("")
+        typer.echo("Discovered:")
+        typer.echo(f"🎬 {stats['videos']} videos")
+        typer.echo(f"💻 {stats['repositories']} repositories")
+        typer.echo(f"🌐 {stats['documents']} web resources")
+        typer.echo("")
+        typer.echo("Relationships created:")
+        typer.echo(f"{stats['relationships']} references")
+        typer.echo("")
+        typer.echo("Skipped duplicates:")
+        typer.echo(f"{stats['skipped']} existing objects")
+    except Exception as e:
+        typer.echo(f"Error during rebuild: {e}")
+        raise typer.Exit(code=1)
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    app()
+
+
+

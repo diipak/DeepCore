@@ -3,6 +3,8 @@ import { useWorkspace } from '../services/workspaceState';
 import { MemoryDetail } from '../screens/MemoryDetail';
 import { ConceptDetail } from '../screens/ConceptDetail';
 import { Home } from '../screens/Home';
+import { SystemDiagnostics } from '../screens/SystemDiagnostics';
+import { Platform } from '../screens/Platform';
 import { ExplorerPane } from './ExplorerPane';
 import { api } from '../services/api';
 import type { ConceptDetailResponse } from '../services/api';
@@ -110,22 +112,32 @@ export const WorkspacePane: React.FC<{ className?: string }> = ({ className }) =
       return <Home />;
     }
 
-    // 2. If active surface is memories and an object is selected
+    // 2. If active surface is system, render System Diagnostics
+    if (state.activeSurface === 'system') {
+      return <SystemDiagnostics />;
+    }
+
+    // 2.5. If active surface is platform, render Platform dashboard
+    if (state.activeSurface === 'platform') {
+      return <Platform />;
+    }
+
+    // 3. If active surface is memories and an object is selected
     if (state.activeSurface === 'memories' && state.selectedObjectId) {
       return <MemoryDetail />;
     }
 
-    // 3. If active surface is concepts and a concept is selected
+    // 4. If active surface is concepts and a concept is selected
     if (state.activeSurface === 'concepts' && state.selectedConcept) {
       return <ConceptDetail />;
     }
 
-    // 4. If active surface is graph and a concept is selected
+    // 5. If active surface is graph and a concept is selected
     if (state.activeSurface === 'graph' && state.selectedConcept) {
       return renderGraphExplorer();
     }
 
-    // 5. If no specific object or concept is selected, render the Explorer list view for that surface
+    // 6. If no specific object or concept is selected, render the Explorer list view for that surface
     switch (state.activeSurface) {
       case 'memories':
       case 'concepts':

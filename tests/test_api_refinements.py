@@ -221,14 +221,13 @@ def test_dashboard_endpoint(client, db_session):
     summary = dashboard["summary"]
     assert summary["memory_count"] == 2
     assert summary["concept_count"] == 2
-    assert summary["approved_concepts"] == 1
     assert summary["relationship_count"] == 1
     
-    # Verify top concepts
-    assert "top_concepts" in dashboard
-    assert len(dashboard["top_concepts"]) >= 1
-    assert dashboard["top_concepts"][0]["concept"]["title"] == "DashboardConcept1"
+    # Verify focus and orientation
+    assert "focus" in dashboard
+    assert "orientation" in dashboard
+    assert "understanding" in dashboard
+    assert "continuation" in dashboard
     
-    # Verify recent memories
-    assert "recent_memories" in dashboard
-    assert len(dashboard["recent_memories"]) == 2
+    assert len(dashboard["focus"]) >= 1
+    assert len(dashboard["orientation"]) >= 1

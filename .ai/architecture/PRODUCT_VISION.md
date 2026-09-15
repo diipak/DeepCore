@@ -12,6 +12,22 @@ Status: Design Foundation
 
 ---
 
+# V2 Addendum (2026-08-22) — Reframed, Not Replaced
+
+The original vision below is preserved as-written for history. This addendum is the current, operative interpretation of it, arrived at after a full retrospective on why v1's engineering-depth-first approach stalled before producing anything usable. See `.ai/governance/RETROSPECTIVE_AND_V2_KICKOFF.md` and `.ai/governance/V2_EXECUTION_PLAN.md` for the reasoning and the concrete task breakdown.
+
+**The one-sentence version: a private, local, evidence-grounded Jarvis over your own knowledge — that eventually acts, not just answers.**
+
+What changes from the original framing:
+
+- **"Personal operating system" is deliberately narrowed for now.** The original vision's scope (finance, email, calendar, full plugin ecosystem) is not abandoned, but it's explicitly not the near-term target. Scope expands one proven data source at a time (notes now, video next), not all at once.
+- **Chat is the front door, not one of five equal navigation items.** The Home/Memory/Graph/Assistant/More navigation model in the original vision is still structurally reasonable, but in practice the assistant should be what you open first, with the other surfaces as secondary inspection tools (verify what it's citing, browse the graph if curious) rather than places you navigate to daily.
+- **The deterministic kernel principle still holds and still matters**: Registry, Context Engine, and retrieval must stay deterministic; the LLM is the one permitted probabilistic seam, used only to turn retrieved context into a natural-language answer. This was true in v1 and remains true.
+- **Action-taking is real, just deliberately deferred.** The Planner/Tool/Skill/Execution runtime stack built in v1 is not being extended further right now, but it is not being discarded either — it's the mechanism by which a future Jarvis moves from "answers questions" to "does things" (reminders, filing, triggering syncs). It gets picked back up when there's a concrete action use case to build against, not before.
+- **Architecture-before-features, tempered.** v1's stall came substantially from building deep, well-engineered infrastructure years ahead of anything that touched daily use. v2 still values architectural integrity, but every increment must prove itself usable before the next layer gets built on top of it.
+
+---
+
 # North Star
 
 DeepCore is a private personal intelligence system.

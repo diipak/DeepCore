@@ -47,8 +47,10 @@ def test_kernel_smoke_lifecycle(client):
     assert res_dash.status_code == 200
     dash_data = res_dash.json()
     assert "summary" in dash_data
-    assert "top_concepts" in dash_data
-    assert "recent_memories" in dash_data
+    assert "focus" in dash_data
+    assert "orientation" in dash_data
+    assert "understanding" in dash_data
+    assert "continuation" in dash_data
 
     # 3.3 Memories API
     res_mem = client.get("/api/memories/recent?limit=5")

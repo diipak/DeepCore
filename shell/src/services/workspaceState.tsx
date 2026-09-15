@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useLocation } from 'react-router-dom';
 
 export interface WorkspaceState {
-  activeSurface: 'home' | 'memories' | 'concepts' | 'graph' | 'assistant';
+  activeSurface: 'home' | 'memories' | 'concepts' | 'graph' | 'assistant' | 'system' | 'platform';
   activeTypeFilter: string; // 'all', 'note', 'video', etc.
   activeSourceFilter: string | null;
   selectedObjectId: string | null;
@@ -70,7 +70,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setSelectedObjectId, 
       setSelectedConcept, 
       setAssistantVisible, 
-      toggleAssistant 
+      toggleAssistant
     }}>
       {children}
     </WorkspaceContext.Provider>
@@ -106,6 +106,10 @@ export const WorkspaceRouteSync: React.FC = () => {
 
     if (pathname === '/') {
       activeSurface = 'home';
+    } else if (pathname.startsWith('/system')) {
+      activeSurface = 'system';
+    } else if (pathname.startsWith('/platform')) {
+      activeSurface = 'platform';
     } else if (pathname.startsWith('/memories')) {
       activeSurface = 'memories';
       const parts = pathname.split('/');

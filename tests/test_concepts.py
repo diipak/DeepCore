@@ -118,15 +118,19 @@ def test_concept_extraction_logic(tmp_path, db_session):
     concept_tech3 = concept_service.get_concept_by_name("MLX")
     assert concept_tech3 is not None
     
-    # C. Repeated Capitalized Phrase:
-    # - "Docker" (occurs 2 times)
+    # C. Plain Capitalized Tech Terms & Repeated Phrases:
+    # - "Docker", "Python" (plain single-word capitalization)
     concept_freq = concept_service.get_concept_by_name("Docker")
     assert concept_freq is not None
-    
-    # D. Stop Words Excluded:
-    # - "system", "data", "project", "and" should NOT be extracted
+
+    # D. Stop Words & Generic Action Verbs Excluded:
+    # - "system", "data", "project", "and", "you", "create", "open" should NOT be extracted
     assert concept_service.get_concept_by_name("system") is None
     assert concept_service.get_concept_by_name("data") is None
+    assert concept_service.get_concept_by_name("create") is None
+    assert concept_service.get_concept_by_name("open") is None
+    assert concept_service.get_concept_by_name("you") is None
+
     
     # 4. Verify evidence structure in relationships
     rel = db_session.query(DBRegistryRelationship).filter(

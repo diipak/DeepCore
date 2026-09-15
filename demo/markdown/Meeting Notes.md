@@ -8,7 +8,7 @@ tags: [deepcore, meeting]
 - Antigravity (AI Architect)
 
 ## Agenda
-1. Review of the Intelligence Pipeline architecture spec in [architecture/INTELLIGENCE_PIPELINE.md](file:///Users/deepakbatham/Documents/DocsN_all/Project/DeepCore/.ai/architecture/INTELLIGENCE_PIPELINE.md).
+1. Review of the Intelligence Pipeline architecture spec in [architecture/INTELLIGENCE_PIPELINE.md](../../.ai/architecture/INTELLIGENCE_PIPELINE.md).
 2. Plan execution for Vertical Slice 1: Knowledge Ingestion Pipeline.
 3. Set up the demo markdown folder for automated and manual verification.
 

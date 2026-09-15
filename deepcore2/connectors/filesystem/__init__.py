@@ -1,0 +1,6 @@
+from deepcore2.connectors.filesystem.descriptor import CONNECTOR_DESCRIPTOR
+from deepcore2.connectors.filesystem.connector import FilesystemConnector
+from deepcore2.connectors.filesystem.translator import MarkdownTranslator
+
+CONNECTOR_CLASS = FilesystemConnector
+TRANSLATOR_CLASS = MarkdownTranslator

@@ -24,7 +24,7 @@ def test_deterministic_application_startup(db_session):
     
     # Check that services/gateways are wired
     assert app.capabilities_service is not None
-    assert app.conversation_service is not None
+    assert app.get_conversation_service(db_session) is not None
     assert app.get_context_service(db_session) is not None
 
 def test_registry_lifecycle_enforcement():
@@ -73,12 +73,13 @@ def test_startup_validation_missing_required_descriptor():
     def patched_register(cap_reg, tool_reg, skill_reg, exec_reg):
         orig_register(cap_reg, tool_reg, skill_reg, exec_reg)
         # Remove a required descriptor
-        cap_reg.unregister("conversation_runtime")
+        cap_reg.unregister("prompt_assistant_default")
         
     root._register_descriptors_and_executables = patched_register
 
-    with pytest.raises(ValueError, match="Required capability descriptor 'conversation_runtime' is missing"):
+    with pytest.raises(ValueError, match="Required capability descriptor 'prompt_assistant_default' is missing"):
         root.assemble()
+
 
 def test_graceful_shutdown():
     settings = Settings()
@@ -121,7 +122,7 @@ def test_health_domain_structure(db_session):
     assert domains["kernel"]["status"] == "healthy"
     assert domains["registry"]["registry_frozen"] is True
     assert "ollama_llama3" in domains["models"]["supported_models"]
-    assert "markdown_provider" in domains["providers"]["registered_providers"]
+    assert "filesystem" in domains["providers"]["registered_providers"]
 
 def test_health_endpoint_http(client):
     response = client.get("/api/health")

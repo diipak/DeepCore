@@ -42,3 +42,11 @@ dist/
 
 # Logs
 *.log
+
+# Environment variables & secrets
+.env
+.env.*
+
+# Local launchd service plists
+scripts/*.plist
+

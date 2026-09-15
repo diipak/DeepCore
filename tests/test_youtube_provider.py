@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime
 from unittest.mock import patch, MagicMock
@@ -154,3 +155,65 @@ def test_youtube_provider_duplicate_handling(mock_get, db_session):
     # Verify database has exactly 1 record for this external ID
     records = service.list_objects(filters={"source_system": "youtube", "external_id": "dQw4w9WgXcQ"})
     assert len(records) == 1
+
+
+def test_extract_playlist_id():
+    """Verify playlist ID is extracted from various playlist URL formats."""
+    from deepcore2.core.providers.youtube import extract_playlist_id
+
+    assert extract_playlist_id("https://youtube.com/playlist?list=PLDummyPlaylistId123&si=sampleToken123") == "PLDummyPlaylistId123"
+    assert extract_playlist_id("https://www.youtube.com/watch?v=12345678901&list=PLTest123") == "PLTest123"
+    assert extract_playlist_id("https://youtube.com/watch?v=12345678901") is None
+
+
+def test_format_youtube_markdown_note():
+    """Verify markdown note formatting includes YAML frontmatter and spoken transcript."""
+    from deepcore2.core.providers.youtube import format_youtube_markdown_note
+
+    metadata = {
+        "title": "Exceptional Memory Systems",
+        "channel": "Han Zhango",
+        "channel_url": "https://www.youtube.com/@hanzhango",
+        "thumbnail": "https://i.ytimg.com/vi/test/hqdefault.jpg",
+    }
+    transcript = "Memory palace techniques allow rapid spatial encoding of facts."
+    note = format_youtube_markdown_note("test1234567", metadata, transcript, "available")
+
+    assert "type: youtube_capture" in note
+    assert "video_id: \"test1234567\"" in note
+    assert "title: \"Exceptional Memory Systems\"" in note
+    assert "channel: \"Han Zhango\"" in note
+    assert "## Spoken Transcript" in note
+    assert "Memory palace techniques allow rapid spatial encoding of facts." in note
+
+
+def test_sync_youtube_playlist_workflow(tmp_path):
+    """Verify sync_youtube_playlist writes notes, skips duplicates, and isolates transcript errors."""
+    from deepcore2.core.providers.youtube import sync_youtube_playlist
+
+    with patch("deepcore2.core.providers.youtube.fetch_playlist_video_ids") as mock_fetch_ids, \
+         patch("deepcore2.core.providers.youtube.fetch_video_metadata") as mock_meta, \
+         patch("deepcore2.core.providers.youtube.fetch_video_transcript") as mock_trans:
+
+        mock_fetch_ids.return_value = ["vid11111111", "vid22222222"]
+        mock_meta.side_effect = lambda vid: {"title": f"Title for {vid}", "channel": "Test Channel"}
+        mock_trans.side_effect = lambda vid: ("Transcript text", "available") if vid == "vid11111111" else (None, "unavailable")
+
+        res1 = sync_youtube_playlist("https://youtube.com/playlist?list=PL123", output_dir=str(tmp_path))
+
+        assert res1["scanned"] == 2
+        assert res1["new_written"] == 2
+        assert res1["skipped"] == 0
+
+        # Verify files were created on disk
+        files = os.listdir(str(tmp_path))
+        assert len(files) == 2
+        assert any("vid11111111" in f for f in files)
+        assert any("vid22222222" in f for f in files)
+
+        # Sync again: should skip both as already present
+        res2 = sync_youtube_playlist("https://youtube.com/playlist?list=PL123", output_dir=str(tmp_path))
+        assert res2["scanned"] == 2
+        assert res2["new_written"] == 0
+        assert res2["skipped"] == 2
+
